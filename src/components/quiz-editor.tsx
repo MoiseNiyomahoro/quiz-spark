@@ -1,0 +1,246 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Trash2, Sparkles, Loader2, Check } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { generateAIQuiz } from "@/lib/ai.functions";
+import { saveQuiz } from "@/lib/quiz.functions";
+import { toast } from "sonner";
+import { useNavigate } from "@tanstack/react-router";
+
+export type QuestionDraft = {
+  id?: string;
+  type: "multiple_choice" | "true_false" | "fill_blank" | "poll";
+  question_text: string;
+  options: string[];
+  correct_answer: string;
+  explanation?: string;
+  timer_seconds: number;
+  points: number;
+  image_url?: string | null;
+  difficulty?: string;
+};
+
+export function QuizEditor({
+  initial,
+  initialAI,
+}: {
+  initial?: { id?: string; title: string; description: string; visibility: "public" | "private"; questions: QuestionDraft[] };
+  initialAI?: boolean;
+}) {
+  const navigate = useNavigate();
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [description, setDescription] = useState(initial?.description ?? "");
+  const [visibility, setVisibility] = useState<"public" | "private">(initial?.visibility ?? "private");
+  const [questions, setQuestions] = useState<QuestionDraft[]>(initial?.questions ?? []);
+  const [aiOpen, setAiOpen] = useState(!!initialAI && !initial);
+  const [aiTopic, setAiTopic] = useState("");
+  const [aiCount, setAiCount] = useState(8);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const aiGen = useServerFn(generateAIQuiz);
+  const save = useServerFn(saveQuiz);
+
+  function addQuestion(type: QuestionDraft["type"] = "multiple_choice") {
+    setQuestions((qs) => [
+      ...qs,
+      {
+        type,
+        question_text: "",
+        options: type === "true_false" ? ["True", "False"] : ["", "", "", ""],
+        correct_answer: "",
+        timer_seconds: 20,
+        points: 100,
+        explanation: "",
+      },
+    ]);
+  }
+
+  async function handleAI() {
+    if (!aiTopic.trim()) return;
+    setAiLoading(true);
+    try {
+      const res = await aiGen({ data: { topic: aiTopic, count: aiCount, difficulty: "mixed" } });
+      if (!title) setTitle(res.title);
+      if (!description) setDescription(res.description);
+      setQuestions((qs) => [...qs, ...(res.questions as QuestionDraft[])]);
+      setAiOpen(false);
+      toast.success(`Generated ${res.questions.length} questions`);
+    } catch (e: any) {
+      toast.error(e?.message ?? "AI generation failed");
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
+  async function handleSave() {
+    if (!title.trim()) return toast.error("Add a title");
+    if (questions.length === 0) return toast.error("Add at least one question");
+    for (const q of questions) {
+      if (!q.question_text.trim()) return toast.error("All questions need text");
+      if (q.type !== "fill_blank" && q.type !== "poll" && !q.correct_answer) return toast.error("Mark the correct answer for each question");
+    }
+    setSaving(true);
+    try {
+      const res = await save({ data: { id: initial?.id, title, description, visibility, questions } });
+      toast.success("Saved!");
+      navigate({ to: "/quizzes/$id/edit", params: { id: res.id } });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Save failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <Card className="p-6 bg-gradient-card border-2">
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div className="sm:col-span-2">
+            <Label htmlFor="title">Title</Label>
+            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Intro to Computer Networks" />
+          </div>
+          <div className="sm:col-span-2">
+            <Label htmlFor="desc">Description</Label>
+            <Textarea id="desc" value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
+          </div>
+          <div>
+            <Label>Visibility</Label>
+            <Select value={visibility} onValueChange={(v: any) => setVisibility(v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="private">Private</SelectItem>
+                <SelectItem value="public">Public</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </Card>
+
+      {aiOpen && (
+        <Card className="p-6 border-2 border-primary/40 bg-primary/5">
+          <div className="flex items-center gap-2 font-semibold"><Sparkles className="size-4 text-primary" /> AI Quiz Generator</div>
+          <div className="grid sm:grid-cols-[1fr_120px_auto] gap-3 mt-4 items-end">
+            <div>
+              <Label>Topic</Label>
+              <Input value={aiTopic} onChange={(e) => setAiTopic(e.target.value)} placeholder="e.g. Photosynthesis" />
+            </div>
+            <div>
+              <Label>Questions</Label>
+              <Input type="number" min={3} max={20} value={aiCount} onChange={(e) => setAiCount(parseInt(e.target.value) || 8)} />
+            </div>
+            <Button onClick={handleAI} disabled={aiLoading} className="bg-gradient-primary">
+              {aiLoading ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+              Generate
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      <div className="space-y-3">
+        {questions.map((q, idx) => (
+          <QuestionCard
+            key={idx}
+            q={q}
+            index={idx}
+            onChange={(nq) => setQuestions((qs) => qs.map((x, i) => i === idx ? nq : x))}
+            onRemove={() => setQuestions((qs) => qs.filter((_, i) => i !== idx))}
+          />
+        ))}
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Button variant="outline" onClick={() => addQuestion("multiple_choice")}><Plus className="size-4" /> Multiple choice</Button>
+        <Button variant="outline" onClick={() => addQuestion("true_false")}><Plus className="size-4" /> True / False</Button>
+        <Button variant="outline" onClick={() => addQuestion("fill_blank")}><Plus className="size-4" /> Fill blank</Button>
+        <Button variant="outline" onClick={() => addQuestion("poll")}><Plus className="size-4" /> Poll</Button>
+        {!aiOpen && <Button variant="outline" onClick={() => setAiOpen(true)}><Sparkles className="size-4" /> AI</Button>}
+      </div>
+
+      <div className="sticky bottom-4 z-10 flex justify-end">
+        <Button size="lg" onClick={handleSave} disabled={saving} className="bg-gradient-primary shadow-elegant">
+          {saving ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+          Save quiz
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function QuestionCard({ q, index, onChange, onRemove }: { q: QuestionDraft; index: number; onChange: (q: QuestionDraft) => void; onRemove: () => void }) {
+  function setOpt(i: number, v: string) {
+    const opts = [...q.options];
+    opts[i] = v;
+    onChange({ ...q, options: opts });
+  }
+  return (
+    <Card className="p-5 border-2">
+      <div className="flex justify-between items-start gap-2">
+        <div className="text-xs uppercase tracking-widest text-muted-foreground">Q{index + 1} · {q.type.replace("_", " ")}</div>
+        <Button size="sm" variant="ghost" onClick={onRemove}><Trash2 className="size-4" /></Button>
+      </div>
+      <Textarea
+        className="mt-2 text-base"
+        rows={2}
+        value={q.question_text}
+        onChange={(e) => onChange({ ...q, question_text: e.target.value })}
+        placeholder="Question text"
+      />
+      {q.type === "fill_blank" ? (
+        <div className="mt-3">
+          <Label>Correct answer</Label>
+          <Input value={q.correct_answer} onChange={(e) => onChange({ ...q, correct_answer: e.target.value })} />
+        </div>
+      ) : (
+        <div className="mt-3 grid sm:grid-cols-2 gap-2">
+          {q.options.map((o, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => onChange({ ...q, correct_answer: o })}
+                className={`size-7 shrink-0 rounded-full grid place-items-center border-2 ${q.correct_answer === o && o ? "bg-success border-success text-success-foreground" : "border-muted-foreground/30"}`}
+                title="Mark correct"
+              >
+                {q.correct_answer === o && o ? <Check className="size-4" /> : null}
+              </button>
+              <Input
+                value={o}
+                disabled={q.type === "true_false"}
+                onChange={(e) => {
+                  const newVal = e.target.value;
+                  const wasCorrect = q.correct_answer === o;
+                  setOpt(i, newVal);
+                  if (wasCorrect) onChange({ ...q, options: q.options.map((x, j) => j === i ? newVal : x), correct_answer: newVal });
+                }}
+                placeholder={`Option ${i + 1}`}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="grid sm:grid-cols-3 gap-3 mt-4">
+        <div>
+          <Label>Timer (s)</Label>
+          <Input type="number" min={5} max={120} value={q.timer_seconds} onChange={(e) => onChange({ ...q, timer_seconds: parseInt(e.target.value) || 20 })} />
+        </div>
+        <div>
+          <Label>Points</Label>
+          <Input type="number" min={0} value={q.points} onChange={(e) => onChange({ ...q, points: parseInt(e.target.value) || 100 })} />
+        </div>
+        <div>
+          <Label>Image URL</Label>
+          <Input value={q.image_url ?? ""} onChange={(e) => onChange({ ...q, image_url: e.target.value })} placeholder="Optional" />
+        </div>
+      </div>
+      <div className="mt-3">
+        <Label>Explanation (optional)</Label>
+        <Textarea rows={2} value={q.explanation ?? ""} onChange={(e) => onChange({ ...q, explanation: e.target.value })} />
+      </div>
+    </Card>
+  );
+}
