@@ -68,7 +68,7 @@ export function QuizEditor({
       const res = await aiGen({ data: { topic: aiTopic, count: aiCount, difficulty: "mixed" } });
       if (!title) setTitle(res.title);
       if (!description) setDescription(res.description);
-      setQuestions((qs) => [...qs, ...res.questions]);
+      setQuestions((qs) => [...qs, ...(res.questions as QuestionDraft[])]);
       setAiOpen(false);
       toast.success(`Generated ${res.questions.length} questions`);
     } catch (e: any) {
