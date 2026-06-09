@@ -48,20 +48,19 @@ export const advanceSession = createServerFn({ method: "POST" })
       .eq("quiz_id", s.quiz_id);
     const total = count ?? 0;
 
-    let update: Record<string, any> = {};
+    const nowIso = new Date().toISOString();
+    let update;
     if (data.action === "start") {
-      update = { status: "question", current_question_index: 0, current_question_started_at: new Date().toISOString() };
+      update = { status: "question" as const, current_question_index: 0, current_question_started_at: nowIso };
     } else if (data.action === "reveal") {
-      update = { status: "reveal" };
+      update = { status: "reveal" as const };
     } else if (data.action === "next") {
       const nextIdx = s.current_question_index + 1;
-      if (nextIdx >= total) {
-        update = { status: "ended", ended_at: new Date().toISOString() };
-      } else {
-        update = { status: "question", current_question_index: nextIdx, current_question_started_at: new Date().toISOString() };
-      }
-    } else if (data.action === "end") {
-      update = { status: "ended", ended_at: new Date().toISOString() };
+      update = nextIdx >= total
+        ? { status: "ended" as const, ended_at: nowIso }
+        : { status: "question" as const, current_question_index: nextIdx, current_question_started_at: nowIso };
+    } else {
+      update = { status: "ended" as const, ended_at: nowIso };
     }
 
     const { error } = await supabase.from("sessions").update(update).eq("id", data.sessionId);
