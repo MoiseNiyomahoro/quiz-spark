@@ -14,16 +14,289 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      participants: {
+        Row: {
+          id: string
+          joined_at: string
+          nickname: string
+          score: number
+          session_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          nickname: string
+          score?: number
+          session_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          nickname?: string
+          score?: number
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participants_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      questions: {
+        Row: {
+          correct_answer: string | null
+          created_at: string
+          difficulty: string | null
+          explanation: string | null
+          id: string
+          image_url: string | null
+          options: Json
+          order_index: number
+          points: number
+          question_text: string
+          quiz_id: string
+          timer_seconds: number
+          type: Database["public"]["Enums"]["question_type"]
+        }
+        Insert: {
+          correct_answer?: string | null
+          created_at?: string
+          difficulty?: string | null
+          explanation?: string | null
+          id?: string
+          image_url?: string | null
+          options?: Json
+          order_index?: number
+          points?: number
+          question_text: string
+          quiz_id: string
+          timer_seconds?: number
+          type?: Database["public"]["Enums"]["question_type"]
+        }
+        Update: {
+          correct_answer?: string | null
+          created_at?: string
+          difficulty?: string | null
+          explanation?: string | null
+          id?: string
+          image_url?: string | null
+          options?: Json
+          order_index?: number
+          points?: number
+          question_text?: string
+          quiz_id?: string
+          timer_seconds?: number
+          type?: Database["public"]["Enums"]["question_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quizzes: {
+        Row: {
+          cover_image_url: string | null
+          created_at: string
+          creator_id: string
+          description: string | null
+          id: string
+          title: string
+          updated_at: string
+          visibility: Database["public"]["Enums"]["quiz_visibility"]
+        }
+        Insert: {
+          cover_image_url?: string | null
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          id?: string
+          title: string
+          updated_at?: string
+          visibility?: Database["public"]["Enums"]["quiz_visibility"]
+        }
+        Update: {
+          cover_image_url?: string | null
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          id?: string
+          title?: string
+          updated_at?: string
+          visibility?: Database["public"]["Enums"]["quiz_visibility"]
+        }
+        Relationships: []
+      }
+      responses: {
+        Row: {
+          created_at: string
+          id: string
+          is_correct: boolean
+          participant_id: string
+          points: number
+          question_id: string
+          response_time_ms: number
+          selected_answer: string | null
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_correct?: boolean
+          participant_id: string
+          points?: number
+          question_id: string
+          response_time_ms?: number
+          selected_answer?: string | null
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_correct?: boolean
+          participant_id?: string
+          points?: number
+          question_id?: string
+          response_time_ms?: number
+          selected_answer?: string | null
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "responses_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "responses_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "responses_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sessions: {
+        Row: {
+          created_at: string
+          current_question_index: number
+          current_question_started_at: string | null
+          ended_at: string | null
+          host_id: string
+          id: string
+          pin_code: string
+          quiz_id: string
+          status: Database["public"]["Enums"]["session_status"]
+        }
+        Insert: {
+          created_at?: string
+          current_question_index?: number
+          current_question_started_at?: string | null
+          ended_at?: string | null
+          host_id: string
+          id?: string
+          pin_code: string
+          quiz_id: string
+          status?: Database["public"]["Enums"]["session_status"]
+        }
+        Update: {
+          created_at?: string
+          current_question_index?: number
+          current_question_started_at?: string | null
+          ended_at?: string | null
+          host_id?: string
+          id?: string
+          pin_code?: string
+          quiz_id?: string
+          status?: Database["public"]["Enums"]["session_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sessions_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "teacher"
+      question_type: "multiple_choice" | "true_false" | "fill_blank" | "poll"
+      quiz_visibility: "public" | "private"
+      session_status: "lobby" | "active" | "question" | "reveal" | "ended"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +423,11 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "teacher"],
+      question_type: ["multiple_choice", "true_false", "fill_blank", "poll"],
+      quiz_visibility: ["public", "private"],
+      session_status: ["lobby", "active", "question", "reveal", "ended"],
+    },
   },
 } as const
