@@ -12,6 +12,7 @@ import { Toaster } from "sonner";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import logoAsset from "@/assets/csabaza-logo.png.asset.json";
 
 function NotFoundComponent() {
   return (
@@ -78,23 +79,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Quiz Spark is a real-time web quiz platform for educators and students." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Quiz Spark is a real-time web quiz platform for educators and students." },
+      { title: "CSAbaza | Live Quiz Platform" },
+      { name: "description", content: "CSAbaza is a real-time quiz platform for schools where teachers host live games and students join with a PIN." },
+      { name: "author", content: "CSAbaza" },
+      { property: "og:title", content: "CSAbaza | Live Quiz Platform" },
+      { property: "og:description", content: "CSAbaza is a real-time quiz platform for schools where teachers host live games and students join with a PIN." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Lovable App" },
-      { name: "twitter:description", content: "Quiz Spark is a real-time web quiz platform for educators and students." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/afe59c7a-8806-4d44-a536-5fe708f374d4/id-preview-0d5dac4b--ba63c7e5-bd74-4bec-9292-3d6009bafb6f.lovable.app-1781028181920.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/afe59c7a-8806-4d44-a536-5fe708f374d4/id-preview-0d5dac4b--ba63c7e5-bd74-4bec-9292-3d6009bafb6f.lovable.app-1781028181920.png" },
+      { name: "twitter:title", content: "CSAbaza | Live Quiz Platform" },
+      { name: "twitter:description", content: "CSAbaza is a real-time quiz platform for schools where teachers host live games and students join with a PIN." },
+      { property: "og:image", content: logoAsset.url },
+      { name: "twitter:image", content: logoAsset.url },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
+      },
+      {
+        rel: "icon",
+        href: logoAsset.url,
       },
     ],
   }),
