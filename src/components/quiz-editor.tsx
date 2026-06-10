@@ -40,6 +40,8 @@ export function QuizEditor({
   const [aiOpen, setAiOpen] = useState(!!initialAI && !initial);
   const [aiTopic, setAiTopic] = useState("");
   const [aiCount, setAiCount] = useState(8);
+  const [aiNotes, setAiNotes] = useState("");
+  const [aiNotesFileName, setAiNotesFileName] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -62,10 +64,10 @@ export function QuizEditor({
   }
 
   async function handleAI() {
-    if (!aiTopic.trim()) return;
+    if (!aiTopic.trim() && !aiNotes.trim()) return toast.error("Add a topic or upload notes");
     setAiLoading(true);
     try {
-      const res = await aiGen({ data: { topic: aiTopic, count: aiCount, difficulty: "mixed" } });
+      const res = await aiGen({ data: { topic: aiTopic.trim() || "From uploaded notes", count: aiCount, difficulty: "mixed", notes: aiNotes || undefined } });
       if (!title) setTitle(res.title);
       if (!description) setDescription(res.description);
       setQuestions((qs) => [...qs, ...(res.questions as QuestionDraft[])]);
@@ -76,6 +78,14 @@ export function QuizEditor({
     } finally {
       setAiLoading(false);
     }
+  }
+
+  async function handleNotesFile(file: File | null) {
+    if (!file) return;
+    if (file.size > 1_500_000) return toast.error("File too large (max ~1.5MB of text)");
+    const text = await file.text();
+    setAiNotes((prev) => (prev ? prev + "\n\n" : "") + text);
+    setAiNotesFileName(file.name);
   }
 
   async function handleSave() {
@@ -138,6 +148,32 @@ export function QuizEditor({
               {aiLoading ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
               Generate
             </Button>
+          </div>
+          <div className="mt-4">
+            <Label>Notes / source material (optional)</Label>
+            <Textarea
+              rows={5}
+              value={aiNotes}
+              onChange={(e) => setAiNotes(e.target.value)}
+              placeholder="Paste class notes, a chapter summary, or any reference text the AI should base questions on..."
+            />
+            <div className="mt-2 flex items-center gap-3 text-sm">
+              <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded-md border bg-background hover:bg-muted">
+                <input
+                  type="file"
+                  accept=".txt,.md,.markdown,text/plain"
+                  className="hidden"
+                  onChange={(e) => handleNotesFile(e.target.files?.[0] ?? null)}
+                />
+                Upload .txt / .md
+              </label>
+              {aiNotesFileName && <span className="text-muted-foreground">Loaded: {aiNotesFileName}</span>}
+              {aiNotes && (
+                <button type="button" className="text-muted-foreground underline" onClick={() => { setAiNotes(""); setAiNotesFileName(null); }}>
+                  Clear notes
+                </button>
+              )}
+            </div>
           </div>
         </Card>
       )}
