@@ -64,10 +64,10 @@ export function QuizEditor({
   }
 
   async function handleAI() {
-    if (!aiTopic.trim()) return;
+    if (!aiTopic.trim() && !aiNotes.trim()) return toast.error("Add a topic or upload notes");
     setAiLoading(true);
     try {
-      const res = await aiGen({ data: { topic: aiTopic, count: aiCount, difficulty: "mixed" } });
+      const res = await aiGen({ data: { topic: aiTopic.trim() || "From uploaded notes", count: aiCount, difficulty: "mixed", notes: aiNotes || undefined } });
       if (!title) setTitle(res.title);
       if (!description) setDescription(res.description);
       setQuestions((qs) => [...qs, ...(res.questions as QuestionDraft[])]);
@@ -78,6 +78,14 @@ export function QuizEditor({
     } finally {
       setAiLoading(false);
     }
+  }
+
+  async function handleNotesFile(file: File | null) {
+    if (!file) return;
+    if (file.size > 1_500_000) return toast.error("File too large (max ~1.5MB of text)");
+    const text = await file.text();
+    setAiNotes((prev) => (prev ? prev + "\n\n" : "") + text);
+    setAiNotesFileName(file.name);
   }
 
   async function handleSave() {
