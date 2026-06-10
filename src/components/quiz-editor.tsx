@@ -149,6 +149,32 @@ export function QuizEditor({
               Generate
             </Button>
           </div>
+          <div className="mt-4">
+            <Label>Notes / source material (optional)</Label>
+            <Textarea
+              rows={5}
+              value={aiNotes}
+              onChange={(e) => setAiNotes(e.target.value)}
+              placeholder="Paste class notes, a chapter summary, or any reference text the AI should base questions on..."
+            />
+            <div className="mt-2 flex items-center gap-3 text-sm">
+              <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded-md border bg-background hover:bg-muted">
+                <input
+                  type="file"
+                  accept=".txt,.md,.markdown,text/plain"
+                  className="hidden"
+                  onChange={(e) => handleNotesFile(e.target.files?.[0] ?? null)}
+                />
+                Upload .txt / .md
+              </label>
+              {aiNotesFileName && <span className="text-muted-foreground">Loaded: {aiNotesFileName}</span>}
+              {aiNotes && (
+                <button type="button" className="text-muted-foreground underline" onClick={() => { setAiNotes(""); setAiNotesFileName(null); }}>
+                  Clear notes
+                </button>
+              )}
+            </div>
+          </div>
         </Card>
       )}
 
