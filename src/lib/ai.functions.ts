@@ -34,7 +34,11 @@ No markdown, no commentary. Only JSON.`;
     const userPrompt = `Topic: ${data.topic}
 Number of questions: ${data.count}
 Difficulty: ${data.difficulty}
-Audience: school / educational. Cover the topic broadly and avoid duplicate questions.`;
+Audience: school / educational. Cover the topic broadly and avoid duplicate questions.${
+      data.notes && data.notes.trim()
+        ? `\n\nIMPORTANT: Base the questions strictly on the following teacher's notes / source material. Do not invent facts beyond them. If the notes are limited, prioritize coverage of what they contain.\n\n--- NOTES START ---\n${data.notes.trim()}\n--- NOTES END ---`
+        : ""
+    }`;
 
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
