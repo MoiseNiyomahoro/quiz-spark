@@ -40,6 +40,8 @@ export function QuizEditor({
   const [aiOpen, setAiOpen] = useState(!!initialAI && !initial);
   const [aiTopic, setAiTopic] = useState("");
   const [aiCount, setAiCount] = useState(8);
+  const [aiNotes, setAiNotes] = useState("");
+  const [aiNotesFileName, setAiNotesFileName] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
