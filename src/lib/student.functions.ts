@@ -55,7 +55,7 @@ export const submitAnswer = createServerFn({ method: "POST" })
 
     const { data: question } = await supabaseAdmin
       .from("questions")
-      .select("id, correct_answer, timer_seconds, points")
+      .select("id, correct_answer, explanation, timer_seconds, points")
       .eq("id", data.questionId)
       .single();
     if (!question) throw new Error("Question not found");
@@ -82,5 +82,36 @@ export const submitAnswer = createServerFn({ method: "POST" })
     if (pts > 0) {
       await supabaseAdmin.from("participants").update({ score: p.score + pts }).eq("id", p.id);
     }
-    return { isCorrect, points: pts };
+    return {
+      isCorrect,
+      points: pts,
+      correctAnswer: question.correct_answer,
+      explanation: question.explanation,
+    };
+  });
+
+export const getPlayBootstrap = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => z.object({ pin: z.string().regex(/^\d{6}$/) }).parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: session, error } = await supabaseAdmin
+      .from("sessions")
+      .select("id, quiz_id, status, current_question_index, current_question_started_at, started_at, ended_at")
+      .eq("pin_code", data.pin)
+      .maybeSingle();
+    if (error || !session) throw new Error("Game not found");
+
+    // Safe question payload — never expose correct_answer or explanation to students before reveal
+    const { data: questions } = await supabaseAdmin
+      .from("questions")
+      .select("id, type, question_text, options, image_url, timer_seconds, order_index")
+      .eq("quiz_id", session.quiz_id)
+      .order("order_index");
+
+    const { data: participants } = await supabaseAdmin
+      .from("participants")
+      .select("id, nickname, score")
+      .eq("session_id", session.id);
+
+    return { session, questions: questions ?? [], participants: participants ?? [] };
   });
