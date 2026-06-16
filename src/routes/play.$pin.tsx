@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
-import { submitAnswer } from "@/lib/student.functions";
+import { submitAnswer, getPlayBootstrap } from "@/lib/student.functions";
 import { Check, X, Trophy, Clock } from "lucide-react";
 import { QUESTION_COLORS } from "@/lib/csabaza";
 import { toast } from "sonner";
