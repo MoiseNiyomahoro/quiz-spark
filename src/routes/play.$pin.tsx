@@ -101,7 +101,7 @@ function PlayPage() {
     if (!participant || !currentQ || answered[currentQ.id]) return;
     try {
       const res = await submit({ data: { participantId: participant.participantId, questionId: currentQ.id, selectedAnswer: opt } });
-      setAnswered((a) => ({ ...a, [currentQ.id]: { selected: opt, correct: res.isCorrect, points: res.points } }));
+      setAnswered((a) => ({ ...a, [currentQ.id]: { selected: opt, correct: res.isCorrect, points: res.points, correctAnswer: res.correctAnswer ?? null, explanation: res.explanation ?? null } }));
     } catch (err: any) {
       toast.error(err?.message ?? "Could not submit");
     }
