@@ -13,6 +13,7 @@ import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import logoAsset from "@/assets/csabaza-logo.png.asset.json";
+import { supabase } from "@/integrations/supabase/client";
 
 function NotFoundComponent() {
   return (
