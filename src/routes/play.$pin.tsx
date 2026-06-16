@@ -28,11 +28,11 @@ type QuestionRow = {
   question_text: string;
   type: string;
   options: string[];
-  correct_answer: string | null;
   timer_seconds: number;
   image_url: string | null;
-  explanation: string | null;
 };
+
+type RevealInfo = { selected: string; correct: boolean; points: number; correctAnswer: string | null; explanation: string | null };
 
 function PlayPage() {
   const { pin } = Route.useParams();
