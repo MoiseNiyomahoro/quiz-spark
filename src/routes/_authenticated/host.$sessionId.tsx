@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -75,6 +75,29 @@ function HostPage() {
       if (action === "end") navigate({ to: "/results/$sessionId", params: { sessionId } });
     } catch (e: any) { toast.error(e?.message ?? "Action failed"); }
   }
+
+  // Auto-advance: when timer hits 0 -> reveal; after REVEAL_MS in reveal -> next
+  const autoActionRef = useRef<string | null>(null);
+  const revealAtRef = useRef<number | null>(null);
+  const REVEAL_MS = 4000;
+  useEffect(() => {
+    if (!session || !currentQ) return;
+    const key = `${session.status}:${session.current_question_index}`;
+    if (session.status === "question" && remaining <= 0 && autoActionRef.current !== key) {
+      autoActionRef.current = key;
+      act("reveal");
+    } else if (session.status === "reveal") {
+      if (revealAtRef.current === null) revealAtRef.current = Date.now();
+      if (Date.now() - revealAtRef.current >= REVEAL_MS && autoActionRef.current !== key) {
+        autoActionRef.current = key;
+        revealAtRef.current = null;
+        act("next");
+      }
+    } else if (session.status === "question") {
+      revealAtRef.current = null;
+    }
+  }, [session?.status, session?.current_question_index, remaining, currentQ?.id]);
+
 
   return (
     <div className="min-h-screen bg-background">
