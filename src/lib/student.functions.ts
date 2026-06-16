@@ -96,7 +96,7 @@ export const getPlayBootstrap = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: session, error } = await supabaseAdmin
       .from("sessions")
-      .select("id, quiz_id, status, current_question_index, current_question_started_at, started_at, ended_at")
+      .select("id, quiz_id, status, current_question_index, current_question_started_at, ended_at, created_at")
       .eq("pin_code", data.pin)
       .maybeSingle();
     if (error || !session) throw new Error("Game not found");
