@@ -50,15 +50,17 @@ function PlayPage() {
   useEffect(() => {
     let cancelled = false;
     async function load() {
-      const { data: s } = await supabase.from("sessions").select("*").eq("pin_code", pin).maybeSingle();
-      if (!s || cancelled) return;
-      setSession(s as any);
-      const stored = localStorage.getItem(`csabaza:${s.id}`);
-      if (stored) setParticipant(JSON.parse(stored));
-      const { data: q } = await supabase.from("questions").select("*").eq("quiz_id", s.quiz_id).order("order_index");
-      if (!cancelled) setQuestions((q as any) ?? []);
-      const { data: p } = await supabase.from("participants").select("*").eq("session_id", s.id);
-      if (!cancelled) setParticipants((p as any) ?? []);
+      try {
+        const res = await bootstrap({ data: { pin } });
+        if (cancelled) return;
+        setSession(res.session as any);
+        const stored = localStorage.getItem(`csabaza:${res.session.id}`);
+        if (stored) setParticipant(JSON.parse(stored));
+        setQuestions((res.questions as any) ?? []);
+        setParticipants((res.participants as any) ?? []);
+      } catch (err: any) {
+        toast.error(err?.message ?? "Could not load game");
+      }
     }
     load();
     return () => { cancelled = true; };
