@@ -40,10 +40,11 @@ function PlayPage() {
   const [questions, setQuestions] = useState<QuestionRow[]>([]);
   const [participants, setParticipants] = useState<{ id: string; nickname: string; score: number }[]>([]);
   const [participant, setParticipant] = useState<{ sessionId: string; participantId: string; nickname: string } | null>(null);
-  const [answered, setAnswered] = useState<Record<string, { selected: string; correct: boolean; points: number }>>({});
+  const [answered, setAnswered] = useState<Record<string, RevealInfo>>({});
   const [now, setNow] = useState(Date.now());
 
   const submit = useServerFn(submitAnswer);
+  const bootstrap = useServerFn(getPlayBootstrap);
 
   // Load session
   useEffect(() => {
