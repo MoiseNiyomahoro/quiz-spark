@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
-import { submitAnswer } from "@/lib/student.functions";
+import { submitAnswer, getPlayBootstrap } from "@/lib/student.functions";
 import { Check, X, Trophy, Clock } from "lucide-react";
 import { QUESTION_COLORS } from "@/lib/csabaza";
 import { toast } from "sonner";
@@ -28,11 +28,11 @@ type QuestionRow = {
   question_text: string;
   type: string;
   options: string[];
-  correct_answer: string | null;
   timer_seconds: number;
   image_url: string | null;
-  explanation: string | null;
 };
+
+type RevealInfo = { selected: string; correct: boolean; points: number; correctAnswer: string | null; explanation: string | null };
 
 function PlayPage() {
   const { pin } = Route.useParams();
@@ -40,24 +40,27 @@ function PlayPage() {
   const [questions, setQuestions] = useState<QuestionRow[]>([]);
   const [participants, setParticipants] = useState<{ id: string; nickname: string; score: number }[]>([]);
   const [participant, setParticipant] = useState<{ sessionId: string; participantId: string; nickname: string } | null>(null);
-  const [answered, setAnswered] = useState<Record<string, { selected: string; correct: boolean; points: number }>>({});
+  const [answered, setAnswered] = useState<Record<string, RevealInfo>>({});
   const [now, setNow] = useState(Date.now());
 
   const submit = useServerFn(submitAnswer);
+  const bootstrap = useServerFn(getPlayBootstrap);
 
   // Load session
   useEffect(() => {
     let cancelled = false;
     async function load() {
-      const { data: s } = await supabase.from("sessions").select("*").eq("pin_code", pin).maybeSingle();
-      if (!s || cancelled) return;
-      setSession(s as any);
-      const stored = localStorage.getItem(`csabaza:${s.id}`);
-      if (stored) setParticipant(JSON.parse(stored));
-      const { data: q } = await supabase.from("questions").select("*").eq("quiz_id", s.quiz_id).order("order_index");
-      if (!cancelled) setQuestions((q as any) ?? []);
-      const { data: p } = await supabase.from("participants").select("*").eq("session_id", s.id);
-      if (!cancelled) setParticipants((p as any) ?? []);
+      try {
+        const res = await bootstrap({ data: { pin } });
+        if (cancelled) return;
+        setSession(res.session as any);
+        const stored = localStorage.getItem(`csabaza:${res.session.id}`);
+        if (stored) setParticipant(JSON.parse(stored));
+        setQuestions((res.questions as any) ?? []);
+        setParticipants((res.participants as any) ?? []);
+      } catch (err: any) {
+        toast.error(err?.message ?? "Could not load game");
+      }
     }
     load();
     return () => { cancelled = true; };
@@ -98,7 +101,7 @@ function PlayPage() {
     if (!participant || !currentQ || answered[currentQ.id]) return;
     try {
       const res = await submit({ data: { participantId: participant.participantId, questionId: currentQ.id, selectedAnswer: opt } });
-      setAnswered((a) => ({ ...a, [currentQ.id]: { selected: opt, correct: res.isCorrect, points: res.points } }));
+      setAnswered((a) => ({ ...a, [currentQ.id]: { selected: opt, correct: res.isCorrect, points: res.points, correctAnswer: res.correctAnswer ?? null, explanation: res.explanation ?? null } }));
     } catch (err: any) {
       toast.error(err?.message ?? "Could not submit");
     }
@@ -170,9 +173,9 @@ function PlayPage() {
               {answered[currentQ.id]?.correct ? <Check className="size-10" /> : <X className="size-10" />}
             </div>
             <h2 className="text-3xl font-bold">{answered[currentQ.id]?.correct ? "Correct!" : "Not quite"}</h2>
-            <p className="text-muted-foreground">Correct answer: <span className="font-semibold text-foreground">{currentQ.correct_answer}</span></p>
+            <p className="text-muted-foreground">Correct answer: <span className="font-semibold text-foreground">{answered[currentQ.id]?.correctAnswer ?? "—"}</span></p>
             {answered[currentQ.id] && <p className="text-warning font-semibold">+{answered[currentQ.id].points} pts</p>}
-            {currentQ.explanation && <p className="text-sm text-muted-foreground max-w-lg mx-auto">{currentQ.explanation}</p>}
+            {answered[currentQ.id]?.explanation && <p className="text-sm text-muted-foreground max-w-lg mx-auto">{answered[currentQ.id].explanation}</p>}
             <Leaderboard participants={participants} highlight={participant.participantId} />
           </Card>
         )}
