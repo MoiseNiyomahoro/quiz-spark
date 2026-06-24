@@ -61,10 +61,9 @@ function HostPage() {
     return () => clearInterval(t);
   }, []);
 
-  if (!session) return <div className="min-h-screen grid place-items-center bg-hero"><p>Loading...</p></div>;
-  const joinUrl = typeof window !== "undefined" ? `${window.location.origin}/join/${session.pin_code}` : "";
-  const currentQ = session.current_question_index >= 0 ? questions[session.current_question_index] : null;
-  const startedAt = session.current_question_started_at ? new Date(session.current_question_started_at).getTime() : 0;
+  const joinUrl = typeof window !== "undefined" && session ? `${window.location.origin}/join/${session.pin_code}` : "";
+  const currentQ = session && session.current_question_index >= 0 ? questions[session.current_question_index] : null;
+  const startedAt = session?.current_question_started_at ? new Date(session.current_question_started_at).getTime() : 0;
   const remaining = currentQ ? Math.max(0, currentQ.timer_seconds - (now - startedAt) / 1000) : 0;
   const qResponses = currentQ ? responses.filter((r) => r.question_id === currentQ.id) : [];
   const sortedLeaders = [...participants].sort((a, b) => b.score - a.score);
@@ -97,6 +96,10 @@ function HostPage() {
       revealAtRef.current = null;
     }
   }, [session?.status, session?.current_question_index, remaining, currentQ?.id]);
+
+  if (!session) return <div className="min-h-screen grid place-items-center bg-hero"><p>Loading...</p></div>;
+
+
 
 
   return (
