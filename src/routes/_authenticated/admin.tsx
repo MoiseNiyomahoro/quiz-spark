@@ -16,6 +16,7 @@ function AdminPage() {
   const [stats, setStats] = useState({ users: 0, quizzes: 0, sessions: 0 });
   const [recentQuizzes, setRecentQuizzes] = useState<any[]>([]);
   const [recentUsers, setRecentUsers] = useState<any[]>([]);
+  const [sessionLogs, setSessionLogs] = useState<any[]>([]);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -30,6 +31,12 @@ function AdminPage() {
       setRecentQuizzes(rq ?? []);
       const { data: ru } = await supabase.from("profiles").select("*").order("created_at", { ascending: false }).limit(10);
       setRecentUsers(ru ?? []);
+      const { data: logs } = await supabase
+        .from("sessions")
+        .select("id, pin_code, status, created_at, ended_at, quizzes(title, profiles!quizzes_creator_id_fkey(name)), participants(id)")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      setSessionLogs(logs ?? []);
     })();
   }, [isAdmin]);
 
