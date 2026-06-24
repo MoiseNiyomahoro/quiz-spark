@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -19,16 +19,26 @@ function JoinPage() {
   const join = useServerFn(joinSession);
   const navigate = useNavigate();
 
+  // If already joined this pin, skip the form
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(`csabaza:pin:${pin}`);
+      if (stored) navigate({ to: "/play/$pin", params: { pin }, replace: true });
+    } catch {}
+  }, [pin, navigate]);
+
   async function handleJoin(e: React.FormEvent) {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
     try {
       const res = await join({ data: { pin, nickname: nickname.trim() } });
-      localStorage.setItem(`csabaza:${res.sessionId}`, JSON.stringify(res));
-      navigate({ to: "/play/$pin", params: { pin } });
+      const payload = JSON.stringify(res);
+      localStorage.setItem(`csabaza:${res.sessionId}`, payload);
+      localStorage.setItem(`csabaza:pin:${pin}`, payload);
+      navigate({ to: "/play/$pin", params: { pin }, replace: true });
     } catch (err: any) {
       toast.error(err?.message ?? "Could not join");
-    } finally {
       setLoading(false);
     }
   }
