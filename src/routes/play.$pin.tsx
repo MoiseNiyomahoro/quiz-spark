@@ -109,10 +109,14 @@ function PlayPage() {
 
   async function pickAnswer(opt: string) {
     if (!participant || !currentQ || answered[currentQ.id]) return;
+    // Optimistic lock so the user can only click once
+    setAnswered((a) => ({ ...a, [currentQ.id]: { selected: opt, correct: false, points: 0, correctAnswer: null, explanation: null } }));
     try {
       const res = await submit({ data: { participantId: participant.participantId, questionId: currentQ.id, selectedAnswer: opt } });
       setAnswered((a) => ({ ...a, [currentQ.id]: { selected: opt, correct: res.isCorrect, points: res.points, correctAnswer: res.correctAnswer ?? null, explanation: res.explanation ?? null } }));
     } catch (err: any) {
+      // Revert lock so the user can retry
+      setAnswered((a) => { const n = { ...a }; delete n[currentQ.id]; return n; });
       toast.error(err?.message ?? "Could not submit");
     }
   }
