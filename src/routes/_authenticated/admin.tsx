@@ -92,6 +92,42 @@ function AdminPage() {
             </ul>
           </Card>
         </div>
+
+        <Card className="p-5">
+          <h2 className="font-bold">Game history (all sessions)</h2>
+          <p className="text-xs text-muted-foreground">Latest 50 hosted sessions across the platform</p>
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="text-left text-xs uppercase text-muted-foreground">
+                <tr>
+                  <th className="py-2 pr-3">When</th>
+                  <th className="py-2 pr-3">Quiz</th>
+                  <th className="py-2 pr-3">Host</th>
+                  <th className="py-2 pr-3">PIN</th>
+                  <th className="py-2 pr-3">Players</th>
+                  <th className="py-2 pr-3">Status</th>
+                  <th className="py-2 pr-3">Ended</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sessionLogs.map((s) => (
+                  <tr key={s.id} className="border-t">
+                    <td className="py-2 pr-3 whitespace-nowrap">{new Date(s.created_at).toLocaleString()}</td>
+                    <td className="py-2 pr-3">{s.quizzes?.title ?? "—"}</td>
+                    <td className="py-2 pr-3 text-muted-foreground">{s.quizzes?.profiles?.name ?? "—"}</td>
+                    <td className="py-2 pr-3 font-mono">{s.pin_code}</td>
+                    <td className="py-2 pr-3">{s.participants?.length ?? 0}</td>
+                    <td className="py-2 pr-3"><Badge variant={s.status === "ended" ? "secondary" : "default"}>{s.status}</Badge></td>
+                    <td className="py-2 pr-3 text-muted-foreground whitespace-nowrap">{s.ended_at ? new Date(s.ended_at).toLocaleString() : "—"}</td>
+                  </tr>
+                ))}
+                {sessionLogs.length === 0 && (
+                  <tr><td colSpan={7} className="py-6 text-center text-muted-foreground">No sessions yet</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </Card>
       </div>
     </div>
   );
