@@ -109,10 +109,14 @@ function PlayPage() {
 
   async function pickAnswer(opt: string) {
     if (!participant || !currentQ || answered[currentQ.id]) return;
+    // Optimistic lock so the user can only click once
+    setAnswered((a) => ({ ...a, [currentQ.id]: { selected: opt, correct: false, points: 0, correctAnswer: null, explanation: null } }));
     try {
       const res = await submit({ data: { participantId: participant.participantId, questionId: currentQ.id, selectedAnswer: opt } });
       setAnswered((a) => ({ ...a, [currentQ.id]: { selected: opt, correct: res.isCorrect, points: res.points, correctAnswer: res.correctAnswer ?? null, explanation: res.explanation ?? null } }));
     } catch (err: any) {
+      // Revert lock so the user can retry
+      setAnswered((a) => { const n = { ...a }; delete n[currentQ.id]; return n; });
       toast.error(err?.message ?? "Could not submit");
     }
   }
@@ -160,9 +164,11 @@ function PlayPage() {
                 return (
                   <button
                     key={i}
+                    type="button"
                     disabled={!!answered[currentQ.id] || remaining <= 0}
                     onClick={() => pickAnswer(opt)}
-                    className={`${QUESTION_COLORS[i % 4]} text-white p-6 rounded-2xl text-left font-semibold shadow-soft transition-all hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100 ${picked ? "ring-4 ring-white" : ""}`}
+                    style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
+                    className={`${QUESTION_COLORS[i % 4]} text-white p-6 rounded-2xl text-left font-semibold shadow-soft cursor-pointer select-none active:scale-[0.98] hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed ${picked ? "ring-4 ring-white" : ""}`}
                   >
                     <span className="text-xs opacity-80 block">Option {i + 1}</span>
                     <span className="text-lg">{opt}</span>
