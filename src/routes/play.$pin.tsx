@@ -164,9 +164,11 @@ function PlayPage() {
                 return (
                   <button
                     key={i}
+                    type="button"
                     disabled={!!answered[currentQ.id] || remaining <= 0}
                     onClick={() => pickAnswer(opt)}
-                    className={`${QUESTION_COLORS[i % 4]} text-white p-6 rounded-2xl text-left font-semibold shadow-soft transition-all hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100 ${picked ? "ring-4 ring-white" : ""}`}
+                    style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
+                    className={`${QUESTION_COLORS[i % 4]} text-white p-6 rounded-2xl text-left font-semibold shadow-soft cursor-pointer select-none active:scale-[0.98] hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed ${picked ? "ring-4 ring-white" : ""}`}
                   >
                     <span className="text-xs opacity-80 block">Option {i + 1}</span>
                     <span className="text-lg">{opt}</span>
