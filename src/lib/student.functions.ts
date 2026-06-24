@@ -19,9 +19,21 @@ export const joinSession = createServerFn({ method: "POST" })
     if (error || !session) throw new Error("Invalid PIN");
     if (session.status === "ended") throw new Error("This game has ended.");
 
+    const nickname = data.nickname.trim();
+    // Dedupe: if same nickname already joined this session, reuse it
+    const { data: existing } = await supabaseAdmin
+      .from("participants")
+      .select("id, nickname")
+      .eq("session_id", session.id)
+      .ilike("nickname", nickname)
+      .maybeSingle();
+    if (existing) {
+      return { sessionId: session.id, participantId: existing.id, nickname: existing.nickname };
+    }
+
     const { data: p, error: pErr } = await supabaseAdmin
       .from("participants")
-      .insert({ session_id: session.id, nickname: data.nickname })
+      .insert({ session_id: session.id, nickname })
       .select("*")
       .single();
     if (pErr) throw new Error(pErr.message);
