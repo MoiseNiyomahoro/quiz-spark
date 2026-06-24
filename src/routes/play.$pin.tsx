@@ -46,6 +46,14 @@ function PlayPage() {
   const submit = useServerFn(submitAnswer);
   const bootstrap = useServerFn(getPlayBootstrap);
 
+  // Load participant from localStorage immediately (keyed by pin)
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(`csabaza:pin:${pin}`);
+      if (stored) setParticipant(JSON.parse(stored));
+    } catch {}
+  }, [pin]);
+
   // Load session
   useEffect(() => {
     let cancelled = false;
@@ -54,7 +62,9 @@ function PlayPage() {
         const res = await bootstrap({ data: { pin } });
         if (cancelled) return;
         setSession(res.session as any);
-        const stored = localStorage.getItem(`csabaza:${res.session.id}`);
+        const stored =
+          localStorage.getItem(`csabaza:pin:${pin}`) ||
+          localStorage.getItem(`csabaza:${res.session.id}`);
         if (stored) setParticipant(JSON.parse(stored));
         setQuestions((res.questions as any) ?? []);
         setParticipants((res.participants as any) ?? []);
