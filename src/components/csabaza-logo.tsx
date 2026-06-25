@@ -11,8 +11,8 @@ export function CSAbazaLogo({ className = "", showTagline = true }: { className?
         loading="eager"
       />
       {showTagline && (
-        <span className="hidden sm:inline text-xs font-medium text-muted-foreground leading-tight max-w-[10rem]">
-          Quizzes that <span className="bg-gradient-primary bg-clip-text text-transparent font-semibold">turn classrooms</span> into game shows
+        <span className="hidden md:inline text-base sm:text-lg font-extrabold tracking-tight leading-tight text-foreground">
+          Quizzes that <span className="bg-primary text-primary-foreground px-1.5 rounded">turn classrooms</span> into game shows.
         </span>
       )}
     </Link>
