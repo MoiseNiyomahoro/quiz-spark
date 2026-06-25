@@ -142,7 +142,7 @@ export function QuizEditor({
             </div>
             <div>
               <Label>Questions</Label>
-              <Input type="number" min={3} max={20} value={aiCount} onChange={(e) => setAiCount(parseInt(e.target.value) || 8)} />
+              <Input type="number" min={3} max={50} value={aiCount} onChange={(e) => setAiCount(parseInt(e.target.value) || 8)} />
             </div>
             <Button onClick={handleAI} disabled={aiLoading} className="bg-gradient-primary">
               {aiLoading ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
