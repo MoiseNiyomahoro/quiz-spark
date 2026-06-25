@@ -4,7 +4,7 @@ import { z } from "zod";
 
 const Input = z.object({
   topic: z.string().min(2).max(200),
-  count: z.number().int().min(3).max(20).default(8),
+  count: z.number().int().min(3).max(50).default(8),
   difficulty: z.enum(["easy", "medium", "hard", "mixed"]).default("mixed"),
   notes: z.string().max(20000).optional(),
 });
