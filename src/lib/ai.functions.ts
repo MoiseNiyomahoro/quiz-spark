@@ -36,7 +36,7 @@ Number of questions: ${data.count}
 Difficulty: ${data.difficulty}
 Audience: school / educational. Cover the topic broadly and avoid duplicate questions.${
       data.notes && data.notes.trim()
-        ? `\n\nIMPORTANT: Base the questions strictly on the following teacher's notes / source material. Do not invent facts beyond them. If the notes are limited, prioritize coverage of what they contain.\n\n--- NOTES START ---\n${data.notes.trim()}\n--- NOTES END ---`
+        ? `\n\nIMPORTANT: Base the questions strictly on the following teacher's notes / source material. Do not invent facts beyond them. If the notes are limited, prioritize coverage of what they contain.\n\n--- NOTES START ---\n${data.notes.trim().slice(0, 60000)}\n--- NOTES END ---`
         : ""
     }`;
 
