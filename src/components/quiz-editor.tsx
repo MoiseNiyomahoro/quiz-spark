@@ -67,7 +67,7 @@ export function QuizEditor({
     if (!aiTopic.trim() && !aiNotes.trim()) return toast.error("Add a topic or upload notes");
     setAiLoading(true);
     try {
-      const res = await aiGen({ data: { topic: aiTopic.trim() || "From uploaded notes", count: aiCount, difficulty: "mixed", notes: aiNotes || undefined } });
+      const res = await aiGen({ data: { topic: aiTopic.trim() || "From uploaded notes", count: aiCount, difficulty: "mixed", notes: aiNotes ? aiNotes.slice(0, 60000) : undefined } });
       if (!title) setTitle(res.title);
       if (!description) setDescription(res.description);
       setQuestions((qs) => [...qs, ...(res.questions as QuestionDraft[])]);
