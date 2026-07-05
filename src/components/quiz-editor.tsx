@@ -82,11 +82,43 @@ export function QuizEditor({
 
   async function handleNotesFile(file: File | null) {
     if (!file) return;
-    if (file.size > 1_500_000) return toast.error("File too large (max ~1.5MB of text)");
-    const text = await file.text();
-    setAiNotes((prev) => (prev ? prev + "\n\n" : "") + text);
-    setAiNotesFileName(file.name);
+    if (file.size > 15_000_000) return toast.error("File too large (max 15MB)");
+    const name = file.name.toLowerCase();
+    try {
+      let text = "";
+      if (name.endsWith(".pdf")) {
+        const pdfjs: any = await import("pdfjs-dist");
+        // Use a bundled worker to avoid CDN/CORS issues
+        const workerSrc = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
+        pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
+        const buf = await file.arrayBuffer();
+        const pdf = await pdfjs.getDocument({ data: buf }).promise;
+        const parts: string[] = [];
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          parts.push(content.items.map((it: any) => it.str).join(" "));
+        }
+        text = parts.join("\n\n");
+      } else if (name.endsWith(".docx")) {
+        const mammoth: any = await import("mammoth/mammoth.browser");
+        const buf = await file.arrayBuffer();
+        const res = await mammoth.extractRawText({ arrayBuffer: buf });
+        text = res.value;
+      } else if (name.endsWith(".doc")) {
+        return toast.error("Legacy .doc not supported — please save as .docx or PDF");
+      } else {
+        text = await file.text();
+      }
+      if (!text.trim()) return toast.error("Could not extract text from file");
+      setAiNotes((prev) => (prev ? prev + "\n\n" : "") + text);
+      setAiNotesFileName(file.name);
+      toast.success(`Loaded ${file.name}`);
+    } catch (e: any) {
+      toast.error(`Failed to read file: ${e?.message ?? "unknown error"}`);
+    }
   }
+
 
   async function handleSave() {
     if (!title.trim()) return toast.error("Add a title");
@@ -161,12 +193,13 @@ export function QuizEditor({
               <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded-md border bg-background hover:bg-muted">
                 <input
                   type="file"
-                  accept=".txt,.md,.markdown,text/plain"
+                  accept=".txt,.md,.markdown,.pdf,.docx,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                   className="hidden"
                   onChange={(e) => handleNotesFile(e.target.files?.[0] ?? null)}
                 />
-                Upload .txt / .md
+                Upload .txt / .md / .pdf / .docx
               </label>
+
               {aiNotesFileName && <span className="text-muted-foreground">Loaded: {aiNotesFileName}</span>}
               {aiNotes && (
                 <button type="button" className="text-muted-foreground underline" onClick={() => { setAiNotes(""); setAiNotesFileName(null); }}>
