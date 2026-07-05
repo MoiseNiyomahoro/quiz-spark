@@ -6,7 +6,7 @@ const Input = z.object({
   topic: z.string().min(2).max(200),
   count: z.number().int().min(3).max(50).default(8),
   difficulty: z.enum(["easy", "medium", "hard", "mixed"]).default("mixed"),
-  notes: z.string().max(200000).optional(),
+  notes: z.string().optional(),
 });
 
 export const generateAIQuiz = createServerFn({ method: "POST" })
