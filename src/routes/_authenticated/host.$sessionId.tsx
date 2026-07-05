@@ -111,12 +111,12 @@ function HostPage() {
             <p className="uppercase text-xs tracking-widest opacity-80">Game PIN</p>
             <p className="text-7xl font-display font-black tracking-[0.3em] mt-2">{session.pin_code}</p>
             <p className="mt-4 opacity-90">Join at <span className="font-mono">{joinUrl}</span></p>
-            <div className="mt-4 flex justify-center gap-2">
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
               <Button variant="secondary" onClick={() => { navigator.clipboard.writeText(joinUrl); toast.success("Link copied"); }}>
-                <Copy className="size-4" /> Copy link
+                <Copy className="size-4" /> Copy join link
               </Button>
               <Button variant="secondary" disabled={participants.length === 0} onClick={() => act("start")}>
-                <Play className="size-4" /> Start ({participants.length})
+                <Play className="size-4" /> Start game ({participants.length} joined)
               </Button>
             </div>
           </Card>
