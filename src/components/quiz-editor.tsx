@@ -101,7 +101,7 @@ export function QuizEditor({
         }
         text = parts.join("\n\n");
       } else if (name.endsWith(".docx")) {
-        const mammoth: any = await import("mammoth/mammoth.browser");
+        const mammoth: any = await import(/* @vite-ignore */ "mammoth/mammoth.browser" as any);
         const buf = await file.arrayBuffer();
         const res = await mammoth.extractRawText({ arrayBuffer: buf });
         text = res.value;
