@@ -111,12 +111,12 @@ function HostPage() {
             <p className="uppercase text-xs tracking-widest opacity-80">Game PIN</p>
             <p className="text-7xl font-display font-black tracking-[0.3em] mt-2">{session.pin_code}</p>
             <p className="mt-4 opacity-90">Join at <span className="font-mono">{joinUrl}</span></p>
-            <div className="mt-4 flex justify-center gap-2">
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
               <Button variant="secondary" onClick={() => { navigator.clipboard.writeText(joinUrl); toast.success("Link copied"); }}>
-                <Copy className="size-4" /> Copy link
+                <Copy className="size-4" /> Copy join link
               </Button>
               <Button variant="secondary" disabled={participants.length === 0} onClick={() => act("start")}>
-                <Play className="size-4" /> Start ({participants.length})
+                <Play className="size-4" /> Start game ({participants.length} joined)
               </Button>
             </div>
           </Card>
@@ -148,13 +148,19 @@ function HostPage() {
                 );
               })}
             </div>
-            <div className="flex justify-center gap-2">
-              {session.status === "question" && <Button onClick={() => act("reveal")}><Eye className="size-4" /> Reveal</Button>}
+            <div className="flex flex-wrap justify-center gap-2">
+              {session.status === "question" && (
+                <Button onClick={() => act("reveal")} variant="outline">
+                  <Eye className="size-4" /> Reveal answer
+                </Button>
+              )}
               <Button onClick={() => act("next")} className="bg-gradient-primary">
                 <SkipForward className="size-4" />
-                {session.current_question_index + 1 >= questions.length ? "Finish" : "Next question"}
+                {session.current_question_index + 1 >= questions.length ? "Finish game" : "Next question"}
               </Button>
-              <Button variant="ghost" onClick={() => act("end")}><StopCircle className="size-4" /> End</Button>
+              <Button variant="destructive" onClick={() => act("end")}>
+                <StopCircle className="size-4" /> End game
+              </Button>
             </div>
           </>
         )}
@@ -162,7 +168,16 @@ function HostPage() {
         {session.status === "ended" && (
           <Card className="p-10 text-center">
             <h2 className="text-3xl font-bold">Game ended</h2>
-            <Button asChild className="mt-4 bg-gradient-primary"><Link to="/results/$sessionId" params={{ sessionId }}>View results</Link></Button>
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              <Button asChild className="bg-gradient-primary">
+                <Link to="/results/$sessionId" params={{ sessionId }}>
+                  <Eye className="size-4" /> View results
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link to="/dashboard">Back to dashboard</Link>
+              </Button>
+            </div>
           </Card>
         )}
 

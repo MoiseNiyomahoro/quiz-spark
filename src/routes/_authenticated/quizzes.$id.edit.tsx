@@ -43,7 +43,10 @@ function EditQuiz() {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <h1 className="text-3xl font-bold tracking-tight mb-6">Edit quiz</h1>
+        <div className="flex items-center justify-between mb-6 gap-2">
+          <h1 className="text-3xl font-bold tracking-tight">Edit quiz</h1>
+          <a href="/dashboard" className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4">← Back to dashboard</a>
+        </div>
         {data ? <QuizEditor initial={data} /> : <p className="text-muted-foreground">Loading...</p>}
       </div>
     </div>

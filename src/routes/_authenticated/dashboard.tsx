@@ -87,14 +87,16 @@ function Dashboard() {
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{q.description ?? "No description"}</p>
                 <p className="text-xs text-muted-foreground mt-2">{q.questions?.[0]?.count ?? 0} questions</p>
-                <div className="flex gap-2 mt-4">
+                <div className="flex flex-wrap gap-2 mt-4">
                   <Button size="sm" className="bg-gradient-primary flex-1" onClick={() => host(q.id)}>
-                    <Play className="size-4" /> Host
+                    <Play className="size-4" /> Host game
                   </Button>
                   <Button size="sm" variant="outline" asChild>
                     <Link to="/quizzes/$id/edit" params={{ id: q.id }}>Edit</Link>
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => remove(q.id)}><Trash2 className="size-4" /></Button>
+                  <Button size="sm" variant="ghost" onClick={() => remove(q.id)} aria-label="Delete quiz">
+                    <Trash2 className="size-4" /> Delete
+                  </Button>
                 </div>
               </Card>
             ))}
