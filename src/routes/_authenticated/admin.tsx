@@ -1,11 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Header } from "@/components/header";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { Users, BookOpen, Gamepad2 } from "lucide-react";
+import { Users, BookOpen, Gamepad2, ArrowLeft, LayoutDashboard } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
@@ -62,7 +63,20 @@ function AdminPage() {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="container mx-auto px-4 py-10 max-w-6xl space-y-6">
-        <h1 className="text-3xl font-bold tracking-tight">Admin overview</h1>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">Admin</p>
+            <h1 className="text-3xl font-bold tracking-tight">Platform overview</h1>
+          </div>
+          <div className="flex gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link to="/dashboard"><ArrowLeft className="size-4" /> Back to dashboard</Link>
+            </Button>
+            <Button asChild size="sm" className="bg-gradient-primary">
+              <Link to="/dashboard"><LayoutDashboard className="size-4" /> My quizzes</Link>
+            </Button>
+          </div>
+        </div>
         <div className="grid sm:grid-cols-3 gap-4">
           <StatCard icon={Users} label="Users" value={stats.users} />
           <StatCard icon={BookOpen} label="Quizzes" value={stats.quizzes} />

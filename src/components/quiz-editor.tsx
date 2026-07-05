@@ -224,17 +224,25 @@ export function QuizEditor({
       </div>
 
       <div className="flex flex-wrap gap-2">
+        <div className="text-sm text-muted-foreground w-full mb-1">Add a question:</div>
         <Button variant="outline" onClick={() => addQuestion("multiple_choice")}><Plus className="size-4" /> Multiple choice</Button>
         <Button variant="outline" onClick={() => addQuestion("true_false")}><Plus className="size-4" /> True / False</Button>
-        <Button variant="outline" onClick={() => addQuestion("fill_blank")}><Plus className="size-4" /> Fill blank</Button>
+        <Button variant="outline" onClick={() => addQuestion("fill_blank")}><Plus className="size-4" /> Fill in the blank</Button>
         <Button variant="outline" onClick={() => addQuestion("poll")}><Plus className="size-4" /> Poll</Button>
-        {!aiOpen && <Button variant="outline" onClick={() => setAiOpen(true)}><Sparkles className="size-4" /> AI</Button>}
+        {!aiOpen && (
+          <Button variant="outline" onClick={() => setAiOpen(true)}>
+            <Sparkles className="size-4" /> Generate with AI
+          </Button>
+        )}
       </div>
 
-      <div className="sticky bottom-4 z-10 flex justify-end">
+      <div className="sticky bottom-4 z-10 flex flex-wrap justify-end gap-2">
+        <Button size="lg" variant="outline" onClick={() => navigate({ to: "/dashboard" })}>
+          Cancel
+        </Button>
         <Button size="lg" onClick={handleSave} disabled={saving} className="bg-gradient-primary shadow-elegant">
           {saving ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
-          Save quiz
+          {saving ? "Saving..." : "Save quiz"}
         </Button>
       </div>
     </div>
@@ -251,7 +259,9 @@ function QuestionCard({ q, index, onChange, onRemove }: { q: QuestionDraft; inde
     <Card className="p-5 border-2">
       <div className="flex justify-between items-start gap-2">
         <div className="text-xs uppercase tracking-widest text-muted-foreground">Q{index + 1} · {q.type.replace("_", " ")}</div>
-        <Button size="sm" variant="ghost" onClick={onRemove}><Trash2 className="size-4" /></Button>
+        <Button size="sm" variant="ghost" onClick={onRemove} aria-label="Remove question">
+          <Trash2 className="size-4" /> Remove
+        </Button>
       </div>
       <Textarea
         className="mt-2 text-base"
