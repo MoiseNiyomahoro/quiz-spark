@@ -148,13 +148,19 @@ function HostPage() {
                 );
               })}
             </div>
-            <div className="flex justify-center gap-2">
-              {session.status === "question" && <Button onClick={() => act("reveal")}><Eye className="size-4" /> Reveal</Button>}
+            <div className="flex flex-wrap justify-center gap-2">
+              {session.status === "question" && (
+                <Button onClick={() => act("reveal")} variant="outline">
+                  <Eye className="size-4" /> Reveal answer
+                </Button>
+              )}
               <Button onClick={() => act("next")} className="bg-gradient-primary">
                 <SkipForward className="size-4" />
-                {session.current_question_index + 1 >= questions.length ? "Finish" : "Next question"}
+                {session.current_question_index + 1 >= questions.length ? "Finish game" : "Next question"}
               </Button>
-              <Button variant="ghost" onClick={() => act("end")}><StopCircle className="size-4" /> End</Button>
+              <Button variant="destructive" onClick={() => act("end")}>
+                <StopCircle className="size-4" /> End game
+              </Button>
             </div>
           </>
         )}
@@ -162,7 +168,16 @@ function HostPage() {
         {session.status === "ended" && (
           <Card className="p-10 text-center">
             <h2 className="text-3xl font-bold">Game ended</h2>
-            <Button asChild className="mt-4 bg-gradient-primary"><Link to="/results/$sessionId" params={{ sessionId }}>View results</Link></Button>
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              <Button asChild className="bg-gradient-primary">
+                <Link to="/results/$sessionId" params={{ sessionId }}>
+                  <Eye className="size-4" /> View results
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link to="/dashboard">Back to dashboard</Link>
+              </Button>
+            </div>
           </Card>
         )}
 
