@@ -126,6 +126,24 @@ function HostPage() {
                 <Play className="size-4" /> Start game ({participants.length} joined)
               </Button>
             </div>
+            <div className="mt-6 inline-flex items-center gap-3 bg-black/15 rounded-full px-4 py-2 text-sm">
+              <span className="opacity-90">Auto-advance questions</span>
+              <button
+                type="button"
+                onClick={() => toggleAutoAdvance(!session.auto_advance)}
+                className={`relative w-11 h-6 rounded-full transition ${session.auto_advance ? "bg-success" : "bg-white/30"}`}
+                aria-pressed={session.auto_advance}
+                aria-label="Toggle auto-advance"
+              >
+                <span className={`absolute top-0.5 size-5 rounded-full bg-white transition ${session.auto_advance ? "left-[22px]" : "left-0.5"}`} />
+              </button>
+              <span className="opacity-90 font-semibold">{session.auto_advance ? "On" : "Manual"}</span>
+            </div>
+            <p className="mt-2 text-xs opacity-80">
+              {session.auto_advance
+                ? "Questions advance automatically when the timer ends."
+                : "You control when to reveal answers and move to the next question."}
+            </p>
           </Card>
         )}
 
