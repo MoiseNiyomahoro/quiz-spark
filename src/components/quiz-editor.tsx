@@ -14,7 +14,7 @@ import { useNavigate } from "@tanstack/react-router";
 
 export type QuestionDraft = {
   id?: string;
-  type: "multiple_choice" | "true_false" | "fill_blank" | "poll";
+  type: "multiple_choice" | "true_false" | "fill_blank" | "poll" | "matching";
   question_text: string;
   options: string[];
   correct_answer: string;
@@ -24,6 +24,13 @@ export type QuestionDraft = {
   image_url?: string | null;
   difficulty?: string;
 };
+
+const AI_TYPES: { value: "multiple_choice" | "true_false" | "fill_blank" | "matching"; label: string }[] = [
+  { value: "multiple_choice", label: "Multiple choice" },
+  { value: "true_false", label: "True / False" },
+  { value: "fill_blank", label: "Fill in the blank" },
+  { value: "matching", label: "Matching" },
+];
 
 export function QuizEditor({
   initial,
