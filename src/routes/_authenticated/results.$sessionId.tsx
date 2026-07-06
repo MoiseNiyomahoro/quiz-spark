@@ -4,7 +4,8 @@ import { Header } from "@/components/header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Trophy, Users, Target, Clock, TrendingUp } from "lucide-react";
+import { Trophy, Users, Target, Clock, TrendingUp, Crown, Medal, Sparkles, PartyPopper } from "lucide-react";
+import confetti from "canvas-confetti";
 
 export const Route = createFileRoute("/_authenticated/results/$sessionId")({
   component: ResultsPage,
