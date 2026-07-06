@@ -212,6 +212,24 @@ export function QuizEditor({
             </Button>
           </div>
           <div className="mt-4">
+            <Label>Include these question types</Label>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {AI_TYPES.map((t) => {
+                const on = !!aiTypes[t.value];
+                return (
+                  <button
+                    key={t.value}
+                    type="button"
+                    onClick={() => setAiTypes((s) => ({ ...s, [t.value]: !s[t.value] }))}
+                    className={`px-3 py-1.5 rounded-full text-sm border-2 transition ${on ? "bg-primary text-primary-foreground border-primary" : "bg-background border-muted-foreground/20 hover:border-primary/40"}`}
+                  >
+                    {on ? "✓ " : ""}{t.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div className="mt-4">
             <Label>Notes / source material (optional)</Label>
             <Textarea
               rows={5}
