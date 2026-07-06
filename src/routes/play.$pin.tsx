@@ -263,3 +263,79 @@ function Loading({ text }: { text: string }) {
     </div>
   );
 }
+
+function FillBlankInput({ locked, onSubmit }: { locked: boolean; onSubmit: (v: string) => void }) {
+  const [val, setVal] = useState("");
+  return (
+    <div className="flex gap-2">
+      <input
+        type="text"
+        disabled={locked}
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        placeholder="Type your answer..."
+        className="flex-1 rounded-2xl border-2 bg-background px-4 py-4 text-lg font-semibold outline-none focus:border-primary disabled:opacity-60"
+      />
+      <Button
+        size="lg"
+        disabled={locked || !val.trim()}
+        onClick={() => onSubmit(val.trim())}
+        className="bg-gradient-primary rounded-2xl"
+      >
+        Submit
+      </Button>
+    </div>
+  );
+}
+
+function MatchingInput({ pairs, locked, onSubmit }: { pairs: string[]; locked: boolean; onSubmit: (v: string) => void }) {
+  const parsed = useMemo(
+    () => pairs.map((p) => {
+      const [l = "", r = ""] = p.split("|");
+      return { l: l.trim(), r: r.trim() };
+    }).filter((p) => p.l && p.r),
+    [pairs],
+  );
+  const rightOptions = useMemo(() => {
+    const arr = parsed.map((p) => p.r);
+    // shuffle deterministically-ish
+    return [...arr].sort(() => Math.random() - 0.5);
+  }, [parsed.length]);
+  const [picks, setPicks] = useState<Record<string, string>>({});
+  const allChosen = parsed.every((p) => picks[p.l]);
+
+  function submit() {
+    const payload = parsed.map((p) => `${p.l}|${picks[p.l] ?? ""}`).join(";");
+    onSubmit(payload);
+  }
+
+  return (
+    <div className="space-y-3">
+      {parsed.map((p) => (
+        <div key={p.l} className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 bg-card border-2 rounded-2xl p-3">
+          <span className="font-semibold px-2">{p.l}</span>
+          <span className="text-muted-foreground">↔</span>
+          <select
+            disabled={locked}
+            value={picks[p.l] ?? ""}
+            onChange={(e) => setPicks((s) => ({ ...s, [p.l]: e.target.value }))}
+            className="rounded-lg border-2 bg-background px-3 py-2 font-medium disabled:opacity-60"
+          >
+            <option value="">Choose match...</option>
+            {rightOptions.map((r, i) => (
+              <option key={i} value={r}>{r}</option>
+            ))}
+          </select>
+        </div>
+      ))}
+      <Button
+        size="lg"
+        className="w-full bg-gradient-primary rounded-2xl"
+        disabled={locked || !allChosen}
+        onClick={submit}
+      >
+        Submit matches
+      </Button>
+    </div>
+  );
+}
