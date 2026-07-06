@@ -56,7 +56,6 @@ function ResultsPage() {
   const mostMissed = [...perQuestion].filter((p) => p.count > 0).sort((a, b) => a.accuracy - b.accuracy).slice(0, 3);
   const winner = sorted[0];
   const podium = sorted.slice(0, 3);
-  const rest = sorted.slice(3);
 
   // Fire confetti when the leaderboard loads
   useEffect(() => {
