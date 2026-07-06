@@ -323,6 +323,28 @@ function QuestionCard({ q, index, onChange, onRemove }: { q: QuestionDraft; inde
         <div className="mt-3">
           <Label>Correct answer</Label>
           <Input value={q.correct_answer} onChange={(e) => onChange({ ...q, correct_answer: e.target.value })} />
+          <p className="text-xs text-muted-foreground mt-1">Tip: use "___" in your question text where the blank goes.</p>
+        </div>
+      ) : q.type === "matching" ? (
+        <div className="mt-3 space-y-2">
+          <Label>Pairs (left ↔ right)</Label>
+          {q.options.map((pair, i) => {
+            const [left = "", right = ""] = pair.split("|");
+            const setPair = (l: string, r: string) => setOpt(i, `${l}|${r}`);
+            return (
+              <div key={i} className="grid grid-cols-[1fr_auto_1fr_auto] items-center gap-2">
+                <Input value={left} placeholder={`Left ${i + 1}`} onChange={(e) => setPair(e.target.value, right)} />
+                <span className="text-muted-foreground">↔</span>
+                <Input value={right} placeholder={`Right ${i + 1}`} onChange={(e) => setPair(left, e.target.value)} />
+                <Button size="sm" variant="ghost" onClick={() => onChange({ ...q, options: q.options.filter((_, j) => j !== i) })} aria-label="Remove pair">
+                  <Trash2 className="size-4" />
+                </Button>
+              </div>
+            );
+          })}
+          <Button size="sm" variant="outline" onClick={() => onChange({ ...q, options: [...q.options, "|"] })}>
+            <Plus className="size-4" /> Add pair
+          </Button>
         </div>
       ) : (
         <div className="mt-3 grid sm:grid-cols-2 gap-2">
