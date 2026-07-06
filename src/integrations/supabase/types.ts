@@ -216,6 +216,7 @@ export type Database = {
       }
       sessions: {
         Row: {
+          auto_advance: boolean
           created_at: string
           current_question_index: number
           current_question_started_at: string | null
@@ -227,6 +228,7 @@ export type Database = {
           status: Database["public"]["Enums"]["session_status"]
         }
         Insert: {
+          auto_advance?: boolean
           created_at?: string
           current_question_index?: number
           current_question_started_at?: string | null
@@ -238,6 +240,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["session_status"]
         }
         Update: {
+          auto_advance?: boolean
           created_at?: string
           current_question_index?: number
           current_question_started_at?: string | null
@@ -294,7 +297,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "teacher"
-      question_type: "multiple_choice" | "true_false" | "fill_blank" | "poll"
+      question_type:
+        | "multiple_choice"
+        | "true_false"
+        | "fill_blank"
+        | "poll"
+        | "matching"
       quiz_visibility: "public" | "private"
       session_status: "lobby" | "active" | "question" | "reveal" | "ended"
     }
@@ -425,7 +433,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "teacher"],
-      question_type: ["multiple_choice", "true_false", "fill_blank", "poll"],
+      question_type: [
+        "multiple_choice",
+        "true_false",
+        "fill_blank",
+        "poll",
+        "matching",
+      ],
       quiz_visibility: ["public", "private"],
       session_status: ["lobby", "active", "question", "reveal", "ended"],
     },
