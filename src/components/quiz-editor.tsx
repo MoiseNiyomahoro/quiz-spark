@@ -14,7 +14,7 @@ import { useNavigate } from "@tanstack/react-router";
 
 export type QuestionDraft = {
   id?: string;
-  type: "multiple_choice" | "true_false" | "fill_blank" | "poll";
+  type: "multiple_choice" | "true_false" | "fill_blank" | "poll" | "matching";
   question_text: string;
   options: string[];
   correct_answer: string;
@@ -24,6 +24,13 @@ export type QuestionDraft = {
   image_url?: string | null;
   difficulty?: string;
 };
+
+const AI_TYPES: { value: "multiple_choice" | "true_false" | "fill_blank" | "matching"; label: string }[] = [
+  { value: "multiple_choice", label: "Multiple choice" },
+  { value: "true_false", label: "True / False" },
+  { value: "fill_blank", label: "Fill in the blank" },
+  { value: "matching", label: "Matching" },
+];
 
 export function QuizEditor({
   initial,
@@ -45,6 +52,13 @@ export function QuizEditor({
   const [aiLoading, setAiLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const [aiTypes, setAiTypes] = useState<Record<string, boolean>>({
+    multiple_choice: true,
+    true_false: true,
+    fill_blank: false,
+    matching: false,
+  });
+
   const aiGen = useServerFn(generateAIQuiz);
   const save = useServerFn(saveQuiz);
 
@@ -54,9 +68,16 @@ export function QuizEditor({
       {
         type,
         question_text: "",
-        options: type === "true_false" ? ["True", "False"] : ["", "", "", ""],
+        options:
+          type === "true_false"
+            ? ["True", "False"]
+            : type === "fill_blank"
+            ? []
+            : type === "matching"
+            ? ["|", "|", "|"]
+            : ["", "", "", ""],
         correct_answer: "",
-        timer_seconds: 20,
+        timer_seconds: type === "matching" ? 45 : 20,
         points: 100,
         explanation: "",
       },
@@ -65,9 +86,11 @@ export function QuizEditor({
 
   async function handleAI() {
     if (!aiTopic.trim() && !aiNotes.trim()) return toast.error("Add a topic or upload notes");
+    const selectedTypes = AI_TYPES.filter((t) => aiTypes[t.value]).map((t) => t.value);
+    if (selectedTypes.length === 0) return toast.error("Select at least one question type");
     setAiLoading(true);
     try {
-      const res = await aiGen({ data: { topic: aiTopic.trim() || "From uploaded notes", count: aiCount, difficulty: "mixed", notes: aiNotes ? aiNotes.slice(0, 60000) : undefined } });
+      const res = await aiGen({ data: { topic: aiTopic.trim() || "From uploaded notes", count: aiCount, difficulty: "mixed", notes: aiNotes ? aiNotes.slice(0, 60000) : undefined, types: selectedTypes } });
       if (!title) setTitle(res.title);
       if (!description) setDescription(res.description);
       setQuestions((qs) => [...qs, ...(res.questions as QuestionDraft[])]);
@@ -125,7 +148,14 @@ export function QuizEditor({
     if (questions.length === 0) return toast.error("Add at least one question");
     for (const q of questions) {
       if (!q.question_text.trim()) return toast.error("All questions need text");
-      if (q.type !== "fill_blank" && q.type !== "poll" && !q.correct_answer) return toast.error("Mark the correct answer for each question");
+      if (q.type === "matching") {
+        const pairs = (q.options ?? []).map((p) => p.split("|").map((s) => s.trim())).filter((p) => p[0] && p[1]);
+        if (pairs.length < 2) return toast.error("Matching questions need at least 2 pairs");
+        q.options = pairs.map((p) => `${p[0]}|${p[1]}`);
+        q.correct_answer = pairs.map((p) => `${p[0]}|${p[1]}`).join(";");
+      } else if (q.type !== "fill_blank" && q.type !== "poll" && !q.correct_answer) {
+        return toast.error("Mark the correct answer for each question");
+      }
     }
     setSaving(true);
     try {
@@ -182,6 +212,24 @@ export function QuizEditor({
             </Button>
           </div>
           <div className="mt-4">
+            <Label>Include these question types</Label>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {AI_TYPES.map((t) => {
+                const on = !!aiTypes[t.value];
+                return (
+                  <button
+                    key={t.value}
+                    type="button"
+                    onClick={() => setAiTypes((s) => ({ ...s, [t.value]: !s[t.value] }))}
+                    className={`px-3 py-1.5 rounded-full text-sm border-2 transition ${on ? "bg-primary text-primary-foreground border-primary" : "bg-background border-muted-foreground/20 hover:border-primary/40"}`}
+                  >
+                    {on ? "✓ " : ""}{t.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div className="mt-4">
             <Label>Notes / source material (optional)</Label>
             <Textarea
               rows={5}
@@ -228,6 +276,7 @@ export function QuizEditor({
         <Button variant="outline" onClick={() => addQuestion("multiple_choice")}><Plus className="size-4" /> Multiple choice</Button>
         <Button variant="outline" onClick={() => addQuestion("true_false")}><Plus className="size-4" /> True / False</Button>
         <Button variant="outline" onClick={() => addQuestion("fill_blank")}><Plus className="size-4" /> Fill in the blank</Button>
+        <Button variant="outline" onClick={() => addQuestion("matching")}><Plus className="size-4" /> Matching</Button>
         <Button variant="outline" onClick={() => addQuestion("poll")}><Plus className="size-4" /> Poll</Button>
         {!aiOpen && (
           <Button variant="outline" onClick={() => setAiOpen(true)}>
@@ -274,6 +323,28 @@ function QuestionCard({ q, index, onChange, onRemove }: { q: QuestionDraft; inde
         <div className="mt-3">
           <Label>Correct answer</Label>
           <Input value={q.correct_answer} onChange={(e) => onChange({ ...q, correct_answer: e.target.value })} />
+          <p className="text-xs text-muted-foreground mt-1">Tip: use "___" in your question text where the blank goes.</p>
+        </div>
+      ) : q.type === "matching" ? (
+        <div className="mt-3 space-y-2">
+          <Label>Pairs (left ↔ right)</Label>
+          {q.options.map((pair, i) => {
+            const [left = "", right = ""] = pair.split("|");
+            const setPair = (l: string, r: string) => setOpt(i, `${l}|${r}`);
+            return (
+              <div key={i} className="grid grid-cols-[1fr_auto_1fr_auto] items-center gap-2">
+                <Input value={left} placeholder={`Left ${i + 1}`} onChange={(e) => setPair(e.target.value, right)} />
+                <span className="text-muted-foreground">↔</span>
+                <Input value={right} placeholder={`Right ${i + 1}`} onChange={(e) => setPair(left, e.target.value)} />
+                <Button size="sm" variant="ghost" onClick={() => onChange({ ...q, options: q.options.filter((_, j) => j !== i) })} aria-label="Remove pair">
+                  <Trash2 className="size-4" />
+                </Button>
+              </div>
+            );
+          })}
+          <Button size="sm" variant="outline" onClick={() => onChange({ ...q, options: [...q.options, "|"] })}>
+            <Plus className="size-4" /> Add pair
+          </Button>
         </div>
       ) : (
         <div className="mt-3 grid sm:grid-cols-2 gap-2">

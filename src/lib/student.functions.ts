@@ -67,14 +67,31 @@ export const submitAnswer = createServerFn({ method: "POST" })
 
     const { data: question } = await supabaseAdmin
       .from("questions")
-      .select("id, correct_answer, explanation, timer_seconds, points")
+      .select("id, type, correct_answer, explanation, timer_seconds, points")
       .eq("id", data.questionId)
       .single();
     if (!question) throw new Error("Question not found");
 
     const startedAt = session.current_question_started_at ? new Date(session.current_question_started_at).getTime() : Date.now();
     const elapsed = Date.now() - startedAt;
-    const isCorrect = !!question.correct_answer && question.correct_answer.trim().toLowerCase() === data.selectedAnswer.trim().toLowerCase();
+
+    function normalizeMatching(s: string) {
+      return s
+        .split(";")
+        .map((p) => p.trim().toLowerCase())
+        .filter(Boolean)
+        .sort()
+        .join(";");
+    }
+
+    let isCorrect = false;
+    if (question.correct_answer) {
+      if (question.type === "matching") {
+        isCorrect = normalizeMatching(question.correct_answer) === normalizeMatching(data.selectedAnswer);
+      } else {
+        isCorrect = question.correct_answer.trim().toLowerCase() === data.selectedAnswer.trim().toLowerCase();
+      }
+    }
     const pts = calcScore(isCorrect, question.timer_seconds, elapsed, question.points);
 
     const { error: rErr } = await supabaseAdmin.from("responses").upsert(

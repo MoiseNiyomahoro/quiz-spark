@@ -75,12 +75,13 @@ function HostPage() {
     } catch (e: any) { toast.error(e?.message ?? "Action failed"); }
   }
 
-  // Auto-advance: when timer hits 0 -> reveal; after REVEAL_MS in reveal -> next
+  // Auto-advance: only when session.auto_advance is enabled
   const autoActionRef = useRef<string | null>(null);
   const revealAtRef = useRef<number | null>(null);
   const REVEAL_MS = 4000;
   useEffect(() => {
     if (!session || !currentQ) return;
+    if (!session.auto_advance) return;
     const key = `${session.status}:${session.current_question_index}`;
     if (session.status === "question" && remaining <= 0 && autoActionRef.current !== key) {
       autoActionRef.current = key;
@@ -95,7 +96,13 @@ function HostPage() {
     } else if (session.status === "question") {
       revealAtRef.current = null;
     }
-  }, [session?.status, session?.current_question_index, remaining, currentQ?.id]);
+  }, [session?.status, session?.current_question_index, session?.auto_advance, remaining, currentQ?.id]);
+
+  async function toggleAutoAdvance(next: boolean) {
+    const { error } = await supabase.from("sessions").update({ auto_advance: next }).eq("id", sessionId);
+    if (error) toast.error(error.message);
+    else setSession((s: any) => ({ ...s, auto_advance: next }));
+  }
 
   if (!session) return <div className="min-h-screen grid place-items-center bg-hero"><p>Loading...</p></div>;
 
@@ -119,6 +126,24 @@ function HostPage() {
                 <Play className="size-4" /> Start game ({participants.length} joined)
               </Button>
             </div>
+            <div className="mt-6 inline-flex items-center gap-3 bg-black/15 rounded-full px-4 py-2 text-sm">
+              <span className="opacity-90">Auto-advance questions</span>
+              <button
+                type="button"
+                onClick={() => toggleAutoAdvance(!session.auto_advance)}
+                className={`relative w-11 h-6 rounded-full transition ${session.auto_advance ? "bg-success" : "bg-white/30"}`}
+                aria-pressed={session.auto_advance}
+                aria-label="Toggle auto-advance"
+              >
+                <span className={`absolute top-0.5 size-5 rounded-full bg-white transition ${session.auto_advance ? "left-[22px]" : "left-0.5"}`} />
+              </button>
+              <span className="opacity-90 font-semibold">{session.auto_advance ? "On" : "Manual"}</span>
+            </div>
+            <p className="mt-2 text-xs opacity-80">
+              {session.auto_advance
+                ? "Questions advance automatically when the timer ends."
+                : "You control when to reveal answers and move to the next question."}
+            </p>
           </Card>
         )}
 

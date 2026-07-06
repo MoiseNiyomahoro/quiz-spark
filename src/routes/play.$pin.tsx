@@ -158,24 +158,38 @@ function PlayPage() {
               <h2 className="text-2xl font-bold text-balance">{currentQ.question_text}</h2>
               {currentQ.image_url && <img src={currentQ.image_url} alt="" className="mt-4 rounded-lg max-h-64 mx-auto" />}
             </Card>
-            <div className="grid sm:grid-cols-2 gap-3">
-              {currentQ.options.map((opt, i) => {
-                const picked = answered[currentQ.id]?.selected === opt;
-                return (
-                  <button
-                    key={i}
-                    type="button"
-                    disabled={!!answered[currentQ.id] || remaining <= 0}
-                    onClick={() => pickAnswer(opt)}
-                    style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
-                    className={`${QUESTION_COLORS[i % 4]} text-white p-6 rounded-2xl text-left font-semibold shadow-soft cursor-pointer select-none active:scale-[0.98] hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed ${picked ? "ring-4 ring-white" : ""}`}
-                  >
-                    <span className="text-xs opacity-80 block">Option {i + 1}</span>
-                    <span className="text-lg">{opt}</span>
-                  </button>
-                );
-              })}
-            </div>
+
+            {currentQ.type === "fill_blank" ? (
+              <FillBlankInput
+                locked={!!answered[currentQ.id] || remaining <= 0}
+                onSubmit={(v) => pickAnswer(v)}
+              />
+            ) : currentQ.type === "matching" ? (
+              <MatchingInput
+                pairs={currentQ.options}
+                locked={!!answered[currentQ.id] || remaining <= 0}
+                onSubmit={(v) => pickAnswer(v)}
+              />
+            ) : (
+              <div className="grid sm:grid-cols-2 gap-3">
+                {currentQ.options.map((opt, i) => {
+                  const picked = answered[currentQ.id]?.selected === opt;
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      disabled={!!answered[currentQ.id] || remaining <= 0}
+                      onClick={() => pickAnswer(opt)}
+                      style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
+                      className={`${QUESTION_COLORS[i % 4]} text-white p-6 rounded-2xl text-left font-semibold shadow-soft cursor-pointer select-none active:scale-[0.98] hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed ${picked ? "ring-4 ring-white" : ""}`}
+                    >
+                      <span className="text-xs opacity-80 block">Option {i + 1}</span>
+                      <span className="text-lg">{opt}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
             {answered[currentQ.id] && (
               <p className="text-center text-sm text-muted-foreground">Answer locked in. Waiting for the host...</p>
             )}
@@ -246,6 +260,82 @@ function Loading({ text }: { text: string }) {
   return (
     <div className="min-h-screen grid place-items-center bg-hero">
       <p className="text-muted-foreground">{text}</p>
+    </div>
+  );
+}
+
+function FillBlankInput({ locked, onSubmit }: { locked: boolean; onSubmit: (v: string) => void }) {
+  const [val, setVal] = useState("");
+  return (
+    <div className="flex gap-2">
+      <input
+        type="text"
+        disabled={locked}
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        placeholder="Type your answer..."
+        className="flex-1 rounded-2xl border-2 bg-background px-4 py-4 text-lg font-semibold outline-none focus:border-primary disabled:opacity-60"
+      />
+      <Button
+        size="lg"
+        disabled={locked || !val.trim()}
+        onClick={() => onSubmit(val.trim())}
+        className="bg-gradient-primary rounded-2xl"
+      >
+        Submit
+      </Button>
+    </div>
+  );
+}
+
+function MatchingInput({ pairs, locked, onSubmit }: { pairs: string[]; locked: boolean; onSubmit: (v: string) => void }) {
+  const parsed = useMemo(
+    () => pairs.map((p) => {
+      const [l = "", r = ""] = p.split("|");
+      return { l: l.trim(), r: r.trim() };
+    }).filter((p) => p.l && p.r),
+    [pairs],
+  );
+  const rightOptions = useMemo(() => {
+    const arr = parsed.map((p) => p.r);
+    // shuffle deterministically-ish
+    return [...arr].sort(() => Math.random() - 0.5);
+  }, [parsed.length]);
+  const [picks, setPicks] = useState<Record<string, string>>({});
+  const allChosen = parsed.every((p) => picks[p.l]);
+
+  function submit() {
+    const payload = parsed.map((p) => `${p.l}|${picks[p.l] ?? ""}`).join(";");
+    onSubmit(payload);
+  }
+
+  return (
+    <div className="space-y-3">
+      {parsed.map((p) => (
+        <div key={p.l} className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 bg-card border-2 rounded-2xl p-3">
+          <span className="font-semibold px-2">{p.l}</span>
+          <span className="text-muted-foreground">↔</span>
+          <select
+            disabled={locked}
+            value={picks[p.l] ?? ""}
+            onChange={(e) => setPicks((s) => ({ ...s, [p.l]: e.target.value }))}
+            className="rounded-lg border-2 bg-background px-3 py-2 font-medium disabled:opacity-60"
+          >
+            <option value="">Choose match...</option>
+            {rightOptions.map((r, i) => (
+              <option key={i} value={r}>{r}</option>
+            ))}
+          </select>
+        </div>
+      ))}
+      <Button
+        size="lg"
+        className="w-full bg-gradient-primary rounded-2xl"
+        disabled={locked || !allChosen}
+        onClick={submit}
+      >
+        Submit matches
+      </Button>
     </div>
   );
 }
