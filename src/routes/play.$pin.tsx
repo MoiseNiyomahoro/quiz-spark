@@ -158,24 +158,38 @@ function PlayPage() {
               <h2 className="text-2xl font-bold text-balance">{currentQ.question_text}</h2>
               {currentQ.image_url && <img src={currentQ.image_url} alt="" className="mt-4 rounded-lg max-h-64 mx-auto" />}
             </Card>
-            <div className="grid sm:grid-cols-2 gap-3">
-              {currentQ.options.map((opt, i) => {
-                const picked = answered[currentQ.id]?.selected === opt;
-                return (
-                  <button
-                    key={i}
-                    type="button"
-                    disabled={!!answered[currentQ.id] || remaining <= 0}
-                    onClick={() => pickAnswer(opt)}
-                    style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
-                    className={`${QUESTION_COLORS[i % 4]} text-white p-6 rounded-2xl text-left font-semibold shadow-soft cursor-pointer select-none active:scale-[0.98] hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed ${picked ? "ring-4 ring-white" : ""}`}
-                  >
-                    <span className="text-xs opacity-80 block">Option {i + 1}</span>
-                    <span className="text-lg">{opt}</span>
-                  </button>
-                );
-              })}
-            </div>
+
+            {currentQ.type === "fill_blank" ? (
+              <FillBlankInput
+                locked={!!answered[currentQ.id] || remaining <= 0}
+                onSubmit={(v) => pickAnswer(v)}
+              />
+            ) : currentQ.type === "matching" ? (
+              <MatchingInput
+                pairs={currentQ.options}
+                locked={!!answered[currentQ.id] || remaining <= 0}
+                onSubmit={(v) => pickAnswer(v)}
+              />
+            ) : (
+              <div className="grid sm:grid-cols-2 gap-3">
+                {currentQ.options.map((opt, i) => {
+                  const picked = answered[currentQ.id]?.selected === opt;
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      disabled={!!answered[currentQ.id] || remaining <= 0}
+                      onClick={() => pickAnswer(opt)}
+                      style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
+                      className={`${QUESTION_COLORS[i % 4]} text-white p-6 rounded-2xl text-left font-semibold shadow-soft cursor-pointer select-none active:scale-[0.98] hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed ${picked ? "ring-4 ring-white" : ""}`}
+                    >
+                      <span className="text-xs opacity-80 block">Option {i + 1}</span>
+                      <span className="text-lg">{opt}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
             {answered[currentQ.id] && (
               <p className="text-center text-sm text-muted-foreground">Answer locked in. Waiting for the host...</p>
             )}
