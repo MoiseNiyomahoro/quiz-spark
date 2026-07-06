@@ -276,6 +276,7 @@ export function QuizEditor({
         <Button variant="outline" onClick={() => addQuestion("multiple_choice")}><Plus className="size-4" /> Multiple choice</Button>
         <Button variant="outline" onClick={() => addQuestion("true_false")}><Plus className="size-4" /> True / False</Button>
         <Button variant="outline" onClick={() => addQuestion("fill_blank")}><Plus className="size-4" /> Fill in the blank</Button>
+        <Button variant="outline" onClick={() => addQuestion("matching")}><Plus className="size-4" /> Matching</Button>
         <Button variant="outline" onClick={() => addQuestion("poll")}><Plus className="size-4" /> Poll</Button>
         {!aiOpen && (
           <Button variant="outline" onClick={() => setAiOpen(true)}>
