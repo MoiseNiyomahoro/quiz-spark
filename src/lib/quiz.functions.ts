@@ -4,7 +4,7 @@ import { z } from "zod";
 
 const QuestionInput = z.object({
   id: z.string().optional(),
-  type: z.enum(["multiple_choice", "true_false", "fill_blank", "poll"]),
+  type: z.enum(["multiple_choice", "true_false", "fill_blank", "poll", "matching"]),
   question_text: z.string().min(1),
   image_url: z.string().optional().nullable(),
   options: z.array(z.string()).default([]),
