@@ -148,7 +148,14 @@ export function QuizEditor({
     if (questions.length === 0) return toast.error("Add at least one question");
     for (const q of questions) {
       if (!q.question_text.trim()) return toast.error("All questions need text");
-      if (q.type !== "fill_blank" && q.type !== "poll" && !q.correct_answer) return toast.error("Mark the correct answer for each question");
+      if (q.type === "matching") {
+        const pairs = (q.options ?? []).map((p) => p.split("|").map((s) => s.trim())).filter((p) => p[0] && p[1]);
+        if (pairs.length < 2) return toast.error("Matching questions need at least 2 pairs");
+        q.options = pairs.map((p) => `${p[0]}|${p[1]}`);
+        q.correct_answer = pairs.map((p) => `${p[0]}|${p[1]}`).join(";");
+      } else if (q.type !== "fill_blank" && q.type !== "poll" && !q.correct_answer) {
+        return toast.error("Mark the correct answer for each question");
+      }
     }
     setSaving(true);
     try {
