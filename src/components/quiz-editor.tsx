@@ -52,6 +52,13 @@ export function QuizEditor({
   const [aiLoading, setAiLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const [aiTypes, setAiTypes] = useState<Record<string, boolean>>({
+    multiple_choice: true,
+    true_false: true,
+    fill_blank: false,
+    matching: false,
+  });
+
   const aiGen = useServerFn(generateAIQuiz);
   const save = useServerFn(saveQuiz);
 
@@ -61,9 +68,16 @@ export function QuizEditor({
       {
         type,
         question_text: "",
-        options: type === "true_false" ? ["True", "False"] : ["", "", "", ""],
+        options:
+          type === "true_false"
+            ? ["True", "False"]
+            : type === "fill_blank"
+            ? []
+            : type === "matching"
+            ? ["|", "|", "|"]
+            : ["", "", "", ""],
         correct_answer: "",
-        timer_seconds: 20,
+        timer_seconds: type === "matching" ? 45 : 20,
         points: 100,
         explanation: "",
       },
@@ -72,9 +86,11 @@ export function QuizEditor({
 
   async function handleAI() {
     if (!aiTopic.trim() && !aiNotes.trim()) return toast.error("Add a topic or upload notes");
+    const selectedTypes = AI_TYPES.filter((t) => aiTypes[t.value]).map((t) => t.value);
+    if (selectedTypes.length === 0) return toast.error("Select at least one question type");
     setAiLoading(true);
     try {
-      const res = await aiGen({ data: { topic: aiTopic.trim() || "From uploaded notes", count: aiCount, difficulty: "mixed", notes: aiNotes ? aiNotes.slice(0, 60000) : undefined } });
+      const res = await aiGen({ data: { topic: aiTopic.trim() || "From uploaded notes", count: aiCount, difficulty: "mixed", notes: aiNotes ? aiNotes.slice(0, 60000) : undefined, types: selectedTypes } });
       if (!title) setTitle(res.title);
       if (!description) setDescription(res.description);
       setQuestions((qs) => [...qs, ...(res.questions as QuestionDraft[])]);
