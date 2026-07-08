@@ -173,8 +173,50 @@ function AdminPage() {
           </Card>
         </div>
 
+        <div className="grid lg:grid-cols-3 gap-4">
+          <Card className="p-5">
+            <h2 className="font-bold flex items-center gap-2"><TrendingUp className="size-4 text-success" /> Quizzes players win most</h2>
+            <p className="text-xs text-muted-foreground">Highest average score across all sessions</p>
+            <ul className="mt-3 space-y-2 text-sm">
+              {bestQuizzes.length === 0 && <li className="text-muted-foreground">No data yet.</li>}
+              {bestQuizzes.map((q) => (
+                <li key={q.id} className="flex justify-between border-b pb-2">
+                  <span className="line-clamp-1">{q.title}</span>
+                  <span className="font-semibold text-success">{q.avgPct}/100</span>
+                </li>
+              ))}
+            </ul>
+          </Card>
+          <Card className="p-5">
+            <h2 className="font-bold flex items-center gap-2"><TrendingDown className="size-4 text-destructive" /> Hardest quizzes</h2>
+            <p className="text-xs text-muted-foreground">Lowest answer accuracy</p>
+            <ul className="mt-3 space-y-2 text-sm">
+              {hardestQuizzes.length === 0 && <li className="text-muted-foreground">No data yet.</li>}
+              {hardestQuizzes.map((q) => (
+                <li key={q.id} className="flex justify-between border-b pb-2">
+                  <span className="line-clamp-1">{q.title}</span>
+                  <span className="font-semibold text-destructive">{q.accuracy}% correct</span>
+                </li>
+              ))}
+            </ul>
+          </Card>
+          <Card className="p-5">
+            <h2 className="font-bold flex items-center gap-2"><Crown className="size-4 text-warning" /> Top players (all-time)</h2>
+            <p className="text-xs text-muted-foreground">Cumulative points across all sessions</p>
+            <ul className="mt-3 space-y-2 text-sm">
+              {topPlayers.length === 0 && <li className="text-muted-foreground">No data yet.</li>}
+              {topPlayers.map(([name, score], i) => (
+                <li key={name} className="flex justify-between border-b pb-2">
+                  <span><span className="font-bold mr-2">#{i + 1}</span>{name}</span>
+                  <span className="font-semibold">{score} pts</span>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        </div>
+
         <Card className="p-5">
-          <h2 className="font-bold">Game history (all sessions)</h2>
+          <h2 className="font-bold flex items-center gap-2"><Trophy className="size-4 text-warning" /> Game history (all sessions)</h2>
           <p className="text-xs text-muted-foreground">Latest 50 hosted sessions across the platform</p>
           <div className="mt-3 overflow-x-auto">
             <table className="w-full text-sm">
@@ -183,6 +225,7 @@ function AdminPage() {
                   <th className="py-2 pr-3">When</th>
                   <th className="py-2 pr-3">Quiz</th>
                   <th className="py-2 pr-3">Host</th>
+                  <th className="py-2 pr-3">Winner</th>
                   <th className="py-2 pr-3">PIN</th>
                   <th className="py-2 pr-3">Players</th>
                   <th className="py-2 pr-3">Status</th>
@@ -190,19 +233,28 @@ function AdminPage() {
                 </tr>
               </thead>
               <tbody>
-                {sessionLogs.map((s) => (
-                  <tr key={s.id} className="border-t">
-                    <td className="py-2 pr-3 whitespace-nowrap">{new Date(s.created_at).toLocaleString()}</td>
-                    <td className="py-2 pr-3">{s.quizzes?.title ?? "—"}</td>
-                    <td className="py-2 pr-3 text-muted-foreground">{s.quizzes?.profiles?.name ?? "—"}</td>
-                    <td className="py-2 pr-3 font-mono">{s.pin_code}</td>
-                    <td className="py-2 pr-3">{s.participants?.length ?? 0}</td>
-                    <td className="py-2 pr-3"><Badge variant={s.status === "ended" ? "secondary" : "default"}>{s.status}</Badge></td>
-                    <td className="py-2 pr-3 text-muted-foreground whitespace-nowrap">{s.ended_at ? new Date(s.ended_at).toLocaleString() : "—"}</td>
-                  </tr>
-                ))}
+                {sessionLogs.map((s) => {
+                  const parts = (s.participants ?? []) as any[];
+                  const winner = parts.length ? [...parts].sort((a, b) => b.score - a.score)[0] : null;
+                  return (
+                    <tr key={s.id} className="border-t">
+                      <td className="py-2 pr-3 whitespace-nowrap">{new Date(s.created_at).toLocaleString()}</td>
+                      <td className="py-2 pr-3">
+                        <Link to="/results/$sessionId" params={{ sessionId: s.id }} className="hover:underline">
+                          {s.quizzes?.title ?? "—"}
+                        </Link>
+                      </td>
+                      <td className="py-2 pr-3 text-muted-foreground">{s.quizzes?.profiles?.name ?? "—"}</td>
+                      <td className="py-2 pr-3">{winner ? <span className="flex items-center gap-1"><Crown className="size-3 text-warning" />{winner.nickname} ({winner.score})</span> : "—"}</td>
+                      <td className="py-2 pr-3 font-mono">{s.pin_code}</td>
+                      <td className="py-2 pr-3">{parts.length}</td>
+                      <td className="py-2 pr-3"><Badge variant={s.status === "ended" ? "secondary" : "default"}>{s.status}</Badge></td>
+                      <td className="py-2 pr-3 text-muted-foreground whitespace-nowrap">{s.ended_at ? new Date(s.ended_at).toLocaleString() : "—"}</td>
+                    </tr>
+                  );
+                })}
                 {sessionLogs.length === 0 && (
-                  <tr><td colSpan={7} className="py-6 text-center text-muted-foreground">No sessions yet</td></tr>
+                  <tr><td colSpan={8} className="py-6 text-center text-muted-foreground">No sessions yet</td></tr>
                 )}
               </tbody>
             </table>
