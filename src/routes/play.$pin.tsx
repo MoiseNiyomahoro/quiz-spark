@@ -10,6 +10,8 @@ import { submitAnswer, getPlayBootstrap } from "@/lib/student.functions";
 import { Check, X, Trophy, Clock } from "lucide-react";
 import { QUESTION_COLORS } from "@/lib/csabaza";
 import { toast } from "sonner";
+import confetti from "canvas-confetti";
+import { WinnersPodium, fireCelebration } from "@/components/winners-podium";
 
 export const Route = createFileRoute("/play/$pin")({
   component: PlayPage,
@@ -30,6 +32,7 @@ type QuestionRow = {
   options: string[];
   timer_seconds: number;
   image_url: string | null;
+  points?: number;
 };
 
 type RevealInfo = { selected: string; correct: boolean; points: number; correctAnswer: string | null; explanation: string | null };
@@ -102,10 +105,19 @@ function PlayPage() {
   const startedAt = session?.current_question_started_at ? new Date(session.current_question_started_at).getTime() : 0;
   const remaining = currentQ ? Math.max(0, currentQ.timer_seconds - (now - startedAt) / 1000) : 0;
   const me = participant && participants.find((p) => p.id === participant.participantId);
+  const maxScore = useMemo(() => questions.reduce((a, q) => a + (q.points ?? 0), 0), [questions]);
+  const myPct = me && maxScore > 0 ? Math.round((me.score / maxScore) * 100) : 0;
   const rank = useMemo(() => {
     const sorted = [...participants].sort((a, b) => b.score - a.score);
     return me ? sorted.findIndex((p) => p.id === me.id) + 1 : 0;
   }, [participants, me]);
+
+  // Celebrate when the game ends
+  useEffect(() => {
+    if (session?.status === "ended" && participants.length > 0) {
+      fireCelebration(confetti);
+    }
+  }, [session?.status, participants.length]);
 
   async function pickAnswer(opt: string) {
     if (!participant || !currentQ || answered[currentQ.id]) return;
@@ -141,7 +153,7 @@ function PlayPage() {
       <Header />
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         <div className="flex items-center justify-between mb-4 text-sm">
-          <div className="flex items-center gap-2"><Trophy className="size-4 text-warning" /> {me?.score ?? 0} pts · #{rank || "—"}</div>
+          <div className="flex items-center gap-2"><Trophy className="size-4 text-warning" /> {maxScore > 0 ? `${myPct}/100` : `${me?.score ?? 0} pts`} · #{rank || "—"}</div>
           <div className="text-muted-foreground">Playing as <span className="font-semibold text-foreground">{participant.nickname}</span></div>
         </div>
 
@@ -211,12 +223,20 @@ function PlayPage() {
         )}
 
         {session.status === "ended" && (
-          <Card className="p-10 text-center bg-gradient-card border-2">
-            <Trophy className="size-16 text-warning mx-auto" />
-            <h2 className="text-4xl font-bold mt-4">Game over!</h2>
-            <p className="text-muted-foreground mt-2">You finished #{rank} with {me?.score ?? 0} points.</p>
-            <Leaderboard participants={participants} highlight={participant.participantId} />
-          </Card>
+          <div className="space-y-6">
+            <Card className="p-8 text-center bg-gradient-card border-2 animate-scale-in">
+              <Trophy className="size-16 text-warning mx-auto animate-bounce" />
+              <h2 className="text-4xl font-bold mt-4">Game over!</h2>
+              <p className="text-muted-foreground mt-2">
+                You finished <span className="font-bold text-foreground">#{rank}</span> with{" "}
+                <span className="font-bold text-primary">{maxScore > 0 ? `${myPct}/100` : `${me?.score ?? 0} pts`}</span>
+              </p>
+            </Card>
+            <WinnersPodium participants={participants} maxScore={maxScore} highlightId={participant.participantId} />
+            <Card className="p-6">
+              <Leaderboard participants={participants} highlight={participant.participantId} maxScore={maxScore} />
+            </Card>
+          </div>
         )}
       </div>
     </div>
@@ -240,15 +260,16 @@ function Lobby({ participants }: { participants: { id: string; nickname: string 
   );
 }
 
-function Leaderboard({ participants, highlight }: { participants: { id: string; nickname: string; score: number }[]; highlight: string }) {
+function Leaderboard({ participants, highlight, maxScore }: { participants: { id: string; nickname: string; score: number }[]; highlight: string; maxScore?: number }) {
   const sorted = [...participants].sort((a, b) => b.score - a.score).slice(0, 10);
+  const fmt = (s: number) => (maxScore && maxScore > 0 ? `${Math.round((s / maxScore) * 100)}/100` : `${s}`);
   return (
-    <div className="mt-6 max-w-md mx-auto text-left">
+    <div className="max-w-md mx-auto text-left">
       <h3 className="font-semibold mb-2">Top scores</h3>
       <ul className="space-y-1">
         {sorted.map((p, i) => (
           <li key={p.id} className={`flex justify-between rounded-lg px-3 py-2 text-sm ${p.id === highlight ? "bg-primary/15 font-semibold" : "bg-muted"}`}>
-            <span>{i + 1}. {p.nickname}</span><span>{p.score}</span>
+            <span>{i + 1}. {p.nickname}</span><span>{fmt(p.score)}</span>
           </li>
         ))}
       </ul>

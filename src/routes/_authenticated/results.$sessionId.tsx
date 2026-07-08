@@ -4,8 +4,9 @@ import { Header } from "@/components/header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { Trophy, Users, Target, Clock, TrendingUp, Crown, Medal, Sparkles, PartyPopper } from "lucide-react";
+import { Trophy, Users, Target, Clock, TrendingUp, Crown } from "lucide-react";
 import confetti from "canvas-confetti";
+import { WinnersPodium } from "@/components/winners-podium";
 
 export const Route = createFileRoute("/_authenticated/results/$sessionId")({
   component: ResultsPage,
@@ -32,6 +33,9 @@ function ResultsPage() {
       }
     })();
   }, [sessionId]);
+
+  const maxScore = useMemo(() => questions.reduce((a, q) => a + (q.points ?? 0), 0), [questions]);
+  const toPct = (s: number) => (maxScore > 0 ? Math.round((s / maxScore) * 100) : s);
 
   const stats = useMemo(() => {
     if (participants.length === 0) return null;
@@ -88,59 +92,14 @@ function ResultsPage() {
           <Button asChild variant="outline"><Link to="/dashboard">Back to dashboard</Link></Button>
         </div>
 
-        {winner && (
-          <Card className="relative overflow-hidden p-8 bg-gradient-primary text-primary-foreground border-0 shadow-elegant text-center">
-            <div className="absolute inset-0 pointer-events-none">
-              <Sparkles className="absolute top-4 left-6 size-6 opacity-40 animate-pulse" />
-              <Sparkles className="absolute top-8 right-10 size-8 opacity-30 animate-pulse [animation-delay:0.4s]" />
-              <Sparkles className="absolute bottom-6 left-1/3 size-5 opacity-40 animate-pulse [animation-delay:0.8s]" />
-              <PartyPopper className="absolute bottom-4 right-6 size-8 opacity-40 animate-bounce" />
-            </div>
-            <div className="relative">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1 text-xs uppercase tracking-widest animate-fade-in">
-                <Crown className="size-4" /> Champion
-              </div>
-              <div className="mt-3 animate-scale-in">
-                <Crown className="size-14 mx-auto text-warning drop-shadow-lg" />
-              </div>
-              <h2 className="mt-2 text-5xl font-black font-display animate-fade-in">{winner.nickname}</h2>
-              <p className="mt-2 text-lg opacity-90 animate-fade-in">🎉 Congratulations! {winner.score} points 🎉</p>
-            </div>
-          </Card>
-        )}
+        <WinnersPodium participants={sorted} maxScore={maxScore} />
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Stat icon={Users} label="Players" value={participants.length} />
-          <Stat icon={Target} label="Average score" value={stats?.avg ?? 0} />
-          <Stat icon={Trophy} label="Top score" value={stats?.max ?? 0} accent />
-          <Stat icon={TrendingUp} label="Lowest score" value={stats?.min ?? 0} />
+          <Stat icon={Target} label="Average" value={toPct(stats?.avg ?? 0)} suffix="/100" />
+          <Stat icon={Trophy} label="Top score" value={toPct(stats?.max ?? 0)} suffix="/100" accent />
+          <Stat icon={TrendingUp} label="Lowest" value={toPct(stats?.min ?? 0)} suffix="/100" />
         </div>
-
-        {podium.length > 0 && (
-          <div className="grid grid-cols-3 gap-3 items-end">
-            {[podium[1], podium[0], podium[2]].map((p, i) => {
-              if (!p) return <div key={i} />;
-              const place = p === podium[0] ? 1 : p === podium[1] ? 2 : 3;
-              const heights = { 1: "h-40", 2: "h-32", 3: "h-24" } as const;
-              const colors = {
-                1: "bg-gradient-to-b from-warning to-warning/70",
-                2: "bg-gradient-to-b from-slate-300 to-slate-400",
-                3: "bg-gradient-to-b from-amber-500 to-amber-700",
-              } as const;
-              const Icon = place === 1 ? Crown : Medal;
-              return (
-                <div key={p.id} className="flex flex-col items-center animate-fade-in" style={{ animationDelay: `${i * 120}ms` }}>
-                  <Icon className={`size-8 ${place === 1 ? "text-warning" : "text-muted-foreground"}`} />
-                  <p className="font-bold mt-1 text-center line-clamp-1">{p.nickname}</p>
-                  <p className="text-xs text-muted-foreground">{p.score} pts</p>
-                  <div className={`${heights[place]} ${colors[place]} w-full rounded-t-xl mt-2 grid place-items-center text-white font-black text-2xl shadow-lg`}>
-                    #{place}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
 
         <Card className="p-6">
           <h2 className="font-bold text-lg flex items-center gap-2"><Trophy className="size-5 text-warning" /> Final leaderboard</h2>
@@ -156,7 +115,7 @@ function ResultsPage() {
                   {i === 0 && <Crown className="size-4 text-warning" />}
                   {p.nickname}
                 </span>
-                <span>{p.score} pts</span>
+                <span>{maxScore > 0 ? `${toPct(p.score)}/100` : `${p.score} pts`}</span>
               </li>
             ))}
             {sorted.length === 0 && <p className="text-sm text-muted-foreground">No participants.</p>}
@@ -203,12 +162,12 @@ function ResultsPage() {
   );
 }
 
-function Stat({ icon: Icon, label, value, accent }: { icon: any; label: string; value: number; accent?: boolean }) {
+function Stat({ icon: Icon, label, value, accent, suffix }: { icon: any; label: string; value: number; accent?: boolean; suffix?: string }) {
   return (
     <Card className={`p-5 ${accent ? "bg-gradient-primary text-primary-foreground border-0" : ""}`}>
       <Icon className="size-5 opacity-80" />
       <p className="text-xs opacity-80 mt-2">{label}</p>
-      <p className="text-3xl font-bold font-display">{value}</p>
+      <p className="text-3xl font-bold font-display">{value}{suffix && <span className="text-base font-medium opacity-70">{suffix}</span>}</p>
     </Card>
   );
 }
