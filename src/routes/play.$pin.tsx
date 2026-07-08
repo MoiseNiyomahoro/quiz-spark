@@ -104,10 +104,19 @@ function PlayPage() {
   const startedAt = session?.current_question_started_at ? new Date(session.current_question_started_at).getTime() : 0;
   const remaining = currentQ ? Math.max(0, currentQ.timer_seconds - (now - startedAt) / 1000) : 0;
   const me = participant && participants.find((p) => p.id === participant.participantId);
+  const maxScore = useMemo(() => questions.reduce((a, q) => a + (q.points ?? 0), 0), [questions]);
+  const myPct = me && maxScore > 0 ? Math.round((me.score / maxScore) * 100) : 0;
   const rank = useMemo(() => {
     const sorted = [...participants].sort((a, b) => b.score - a.score);
     return me ? sorted.findIndex((p) => p.id === me.id) + 1 : 0;
   }, [participants, me]);
+
+  // Celebrate when the game ends
+  useEffect(() => {
+    if (session?.status === "ended" && participants.length > 0) {
+      fireCelebration(confetti);
+    }
+  }, [session?.status, participants.length]);
 
   async function pickAnswer(opt: string) {
     if (!participant || !currentQ || answered[currentQ.id]) return;
