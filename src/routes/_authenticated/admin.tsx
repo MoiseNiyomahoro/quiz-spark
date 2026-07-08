@@ -18,6 +18,9 @@ function AdminPage() {
   const [recentQuizzes, setRecentQuizzes] = useState<any[]>([]);
   const [recentUsers, setRecentUsers] = useState<any[]>([]);
   const [sessionLogs, setSessionLogs] = useState<any[]>([]);
+  const [allParticipants, setAllParticipants] = useState<any[]>([]);
+  const [allResponses, setAllResponses] = useState<any[]>([]);
+  const [allQuestions, setAllQuestions] = useState<any[]>([]);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -34,12 +37,75 @@ function AdminPage() {
       setRecentUsers(ru ?? []);
       const { data: logs } = await supabase
         .from("sessions")
-        .select("id, pin_code, status, created_at, ended_at, quizzes(title, profiles!quizzes_creator_id_fkey(name)), participants(id)")
+        .select("id, quiz_id, pin_code, status, created_at, ended_at, quizzes(title, profiles!quizzes_creator_id_fkey(name)), participants(id, nickname, score)")
         .order("created_at", { ascending: false })
         .limit(50);
       setSessionLogs(logs ?? []);
+      const [{ data: parts }, { data: resps }, { data: qs }] = await Promise.all([
+        supabase.from("participants").select("id, session_id, nickname, score"),
+        supabase.from("responses").select("question_id, is_correct"),
+        supabase.from("questions").select("id, quiz_id, points"),
+      ]);
+      setAllParticipants(parts ?? []);
+      setAllResponses(resps ?? []);
+      setAllQuestions(qs ?? []);
     })();
   }, [isAdmin]);
+
+  // Per-quiz analytics: avg score % and accuracy across all sessions
+  const quizAnalytics = useMemo(() => {
+    const byQuiz = new Map<string, { title: string; plays: number; scoreSum: number; scoreCount: number; correct: number; total: number; topWinner: { name: string; score: number } | null }>();
+    const quizMax = new Map<string, number>();
+    for (const q of allQuestions) {
+      quizMax.set(q.quiz_id, (quizMax.get(q.quiz_id) ?? 0) + (q.points ?? 0));
+    }
+    const sessionQuiz = new Map<string, string>();
+    for (const s of sessionLogs) sessionQuiz.set(s.id, s.quiz_id);
+    for (const s of sessionLogs) {
+      const key = s.quiz_id;
+      const existing = byQuiz.get(key) ?? { title: s.quizzes?.title ?? "—", plays: 0, scoreSum: 0, scoreCount: 0, correct: 0, total: 0, topWinner: null };
+      existing.plays += 1;
+      const sessionParts = (s.participants ?? []) as any[];
+      for (const p of sessionParts) {
+        const max = quizMax.get(key) ?? 0;
+        if (max > 0) {
+          existing.scoreSum += (p.score / max) * 100;
+          existing.scoreCount += 1;
+        }
+        if (!existing.topWinner || p.score > existing.topWinner.score) {
+          existing.topWinner = { name: p.nickname, score: p.score };
+        }
+      }
+      byQuiz.set(key, existing);
+    }
+    // question-level accuracy per quiz
+    const qToQuiz = new Map<string, string>();
+    for (const q of allQuestions) qToQuiz.set(q.id, q.quiz_id);
+    for (const r of allResponses) {
+      const qz = qToQuiz.get(r.question_id);
+      if (!qz) continue;
+      const e = byQuiz.get(qz);
+      if (!e) continue;
+      e.total += 1;
+      if (r.is_correct) e.correct += 1;
+    }
+    return [...byQuiz.entries()].map(([id, v]) => ({
+      id,
+      title: v.title,
+      plays: v.plays,
+      avgPct: v.scoreCount > 0 ? Math.round(v.scoreSum / v.scoreCount) : 0,
+      accuracy: v.total > 0 ? Math.round((v.correct / v.total) * 100) : 0,
+      topWinner: v.topWinner,
+    }));
+  }, [sessionLogs, allQuestions, allResponses]);
+
+  const bestQuizzes = [...quizAnalytics].filter((q) => q.plays > 0).sort((a, b) => b.avgPct - a.avgPct).slice(0, 5);
+  const hardestQuizzes = [...quizAnalytics].filter((q) => q.plays > 0).sort((a, b) => a.accuracy - b.accuracy).slice(0, 5);
+  const topPlayers = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const p of allParticipants) map.set(p.nickname, (map.get(p.nickname) ?? 0) + p.score);
+    return [...map.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
+  }, [allParticipants]);
 
   if (loading) return <div className="min-h-screen grid place-items-center"><p>Loading...</p></div>;
   if (!isAdmin) {
