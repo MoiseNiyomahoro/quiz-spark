@@ -260,15 +260,16 @@ function Lobby({ participants }: { participants: { id: string; nickname: string 
   );
 }
 
-function Leaderboard({ participants, highlight }: { participants: { id: string; nickname: string; score: number }[]; highlight: string }) {
+function Leaderboard({ participants, highlight, maxScore }: { participants: { id: string; nickname: string; score: number }[]; highlight: string; maxScore?: number }) {
   const sorted = [...participants].sort((a, b) => b.score - a.score).slice(0, 10);
+  const fmt = (s: number) => (maxScore && maxScore > 0 ? `${Math.round((s / maxScore) * 100)}/100` : `${s}`);
   return (
-    <div className="mt-6 max-w-md mx-auto text-left">
+    <div className="max-w-md mx-auto text-left">
       <h3 className="font-semibold mb-2">Top scores</h3>
       <ul className="space-y-1">
         {sorted.map((p, i) => (
           <li key={p.id} className={`flex justify-between rounded-lg px-3 py-2 text-sm ${p.id === highlight ? "bg-primary/15 font-semibold" : "bg-muted"}`}>
-            <span>{i + 1}. {p.nickname}</span><span>{p.score}</span>
+            <span>{i + 1}. {p.nickname}</span><span>{fmt(p.score)}</span>
           </li>
         ))}
       </ul>
