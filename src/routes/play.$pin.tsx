@@ -153,7 +153,7 @@ function PlayPage() {
       <Header />
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         <div className="flex items-center justify-between mb-4 text-sm">
-          <div className="flex items-center gap-2"><Trophy className="size-4 text-warning" /> {me?.score ?? 0} pts · #{rank || "—"}</div>
+          <div className="flex items-center gap-2"><Trophy className="size-4 text-warning" /> {maxScore > 0 ? `${myPct}/100` : `${me?.score ?? 0} pts`} · #{rank || "—"}</div>
           <div className="text-muted-foreground">Playing as <span className="font-semibold text-foreground">{participant.nickname}</span></div>
         </div>
 
