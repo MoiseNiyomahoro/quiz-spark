@@ -33,6 +33,9 @@ function ResultsPage() {
     })();
   }, [sessionId]);
 
+  const maxScore = useMemo(() => questions.reduce((a, q) => a + (q.points ?? 0), 0), [questions]);
+  const toPct = (s: number) => (maxScore > 0 ? Math.round((s / maxScore) * 100) : s);
+
   const stats = useMemo(() => {
     if (participants.length === 0) return null;
     const scores = participants.map((p) => p.score);
