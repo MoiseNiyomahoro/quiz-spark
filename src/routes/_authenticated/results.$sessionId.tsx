@@ -162,12 +162,12 @@ function ResultsPage() {
   );
 }
 
-function Stat({ icon: Icon, label, value, accent }: { icon: any; label: string; value: number; accent?: boolean }) {
+function Stat({ icon: Icon, label, value, accent, suffix }: { icon: any; label: string; value: number; accent?: boolean; suffix?: string }) {
   return (
     <Card className={`p-5 ${accent ? "bg-gradient-primary text-primary-foreground border-0" : ""}`}>
       <Icon className="size-5 opacity-80" />
       <p className="text-xs opacity-80 mt-2">{label}</p>
-      <p className="text-3xl font-bold font-display">{value}</p>
+      <p className="text-3xl font-bold font-display">{value}{suffix && <span className="text-base font-medium opacity-70">{suffix}</span>}</p>
     </Card>
   );
 }
