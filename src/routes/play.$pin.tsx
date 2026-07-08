@@ -223,12 +223,20 @@ function PlayPage() {
         )}
 
         {session.status === "ended" && (
-          <Card className="p-10 text-center bg-gradient-card border-2">
-            <Trophy className="size-16 text-warning mx-auto" />
-            <h2 className="text-4xl font-bold mt-4">Game over!</h2>
-            <p className="text-muted-foreground mt-2">You finished #{rank} with {me?.score ?? 0} points.</p>
-            <Leaderboard participants={participants} highlight={participant.participantId} />
-          </Card>
+          <div className="space-y-6">
+            <Card className="p-8 text-center bg-gradient-card border-2 animate-scale-in">
+              <Trophy className="size-16 text-warning mx-auto animate-bounce" />
+              <h2 className="text-4xl font-bold mt-4">Game over!</h2>
+              <p className="text-muted-foreground mt-2">
+                You finished <span className="font-bold text-foreground">#{rank}</span> with{" "}
+                <span className="font-bold text-primary">{maxScore > 0 ? `${myPct}/100` : `${me?.score ?? 0} pts`}</span>
+              </p>
+            </Card>
+            <WinnersPodium participants={participants} maxScore={maxScore} highlightId={participant.participantId} />
+            <Card className="p-6">
+              <Leaderboard participants={participants} highlight={participant.participantId} maxScore={maxScore} />
+            </Card>
+          </div>
         )}
       </div>
     </div>
