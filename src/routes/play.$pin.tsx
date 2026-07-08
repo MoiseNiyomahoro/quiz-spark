@@ -10,6 +10,8 @@ import { submitAnswer, getPlayBootstrap } from "@/lib/student.functions";
 import { Check, X, Trophy, Clock } from "lucide-react";
 import { QUESTION_COLORS } from "@/lib/csabaza";
 import { toast } from "sonner";
+import confetti from "canvas-confetti";
+import { WinnersPodium, fireCelebration } from "@/components/winners-podium";
 
 export const Route = createFileRoute("/play/$pin")({
   component: PlayPage,
