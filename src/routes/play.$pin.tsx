@@ -32,6 +32,7 @@ type QuestionRow = {
   options: string[];
   timer_seconds: number;
   image_url: string | null;
+  points?: number;
 };
 
 type RevealInfo = { selected: string; correct: boolean; points: number; correctAnswer: string | null; explanation: string | null };
