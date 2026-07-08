@@ -115,7 +115,7 @@ function ResultsPage() {
                   {i === 0 && <Crown className="size-4 text-warning" />}
                   {p.nickname}
                 </span>
-                <span>{p.score} pts</span>
+                <span>{maxScore > 0 ? `${toPct(p.score)}/100` : `${p.score} pts`}</span>
               </li>
             ))}
             {sorted.length === 0 && <p className="text-sm text-muted-foreground">No participants.</p>}
