@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PlayPinRouteImport } from './routes/play.$pin'
 import { Route as JoinPinRouteImport } from './routes/join.$pin'
+import { Route as AuthenticatedSuperadminRouteImport } from './routes/_authenticated/superadmin'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedResultsSessionIdRouteImport } from './routes/_authenticated/results.$sessionId'
@@ -44,6 +45,11 @@ const JoinPinRoute = JoinPinRouteImport.update({
   id: '/join/$pin',
   path: '/join/$pin',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedSuperadminRoute = AuthenticatedSuperadminRouteImport.update({
+  id: '/superadmin',
+  path: '/superadmin',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
@@ -84,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/superadmin': typeof AuthenticatedSuperadminRoute
   '/join/$pin': typeof JoinPinRoute
   '/play/$pin': typeof PlayPinRoute
   '/host/$sessionId': typeof AuthenticatedHostSessionIdRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/superadmin': typeof AuthenticatedSuperadminRoute
   '/join/$pin': typeof JoinPinRoute
   '/play/$pin': typeof PlayPinRoute
   '/host/$sessionId': typeof AuthenticatedHostSessionIdRoute
@@ -110,6 +118,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/superadmin': typeof AuthenticatedSuperadminRoute
   '/join/$pin': typeof JoinPinRoute
   '/play/$pin': typeof PlayPinRoute
   '/_authenticated/host/$sessionId': typeof AuthenticatedHostSessionIdRoute
@@ -124,6 +133,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin'
     | '/dashboard'
+    | '/superadmin'
     | '/join/$pin'
     | '/play/$pin'
     | '/host/$sessionId'
@@ -136,6 +146,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin'
     | '/dashboard'
+    | '/superadmin'
     | '/join/$pin'
     | '/play/$pin'
     | '/host/$sessionId'
@@ -149,6 +160,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
+    | '/_authenticated/superadmin'
     | '/join/$pin'
     | '/play/$pin'
     | '/_authenticated/host/$sessionId'
@@ -202,6 +214,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JoinPinRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/superadmin': {
+      id: '/_authenticated/superadmin'
+      path: '/superadmin'
+      fullPath: '/superadmin'
+      preLoaderRoute: typeof AuthenticatedSuperadminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -250,6 +269,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedSuperadminRoute: typeof AuthenticatedSuperadminRoute
   AuthenticatedHostSessionIdRoute: typeof AuthenticatedHostSessionIdRoute
   AuthenticatedQuizzesNewRoute: typeof AuthenticatedQuizzesNewRoute
   AuthenticatedResultsSessionIdRoute: typeof AuthenticatedResultsSessionIdRoute
@@ -259,6 +279,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedSuperadminRoute: AuthenticatedSuperadminRoute,
   AuthenticatedHostSessionIdRoute: AuthenticatedHostSessionIdRoute,
   AuthenticatedQuizzesNewRoute: AuthenticatedQuizzesNewRoute,
   AuthenticatedResultsSessionIdRoute: AuthenticatedResultsSessionIdRoute,

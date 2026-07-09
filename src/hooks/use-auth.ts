@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppRole = "admin" | "teacher";
+export type AppRole = "admin" | "teacher" | "superadmin";
 
 export function useAuth() {
   const [session, setSession] = useState<Session | null>(null);
@@ -33,6 +33,22 @@ export function useAuth() {
       .select("role")
       .eq("user_id", user.id)
       .then(({ data }) => setRoles((data ?? []).map((r) => r.role as AppRole)));
+
+    // Auto sign-out disabled users
+    supabase
+      .from("profiles")
+      .select("disabled")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.disabled) {
+          supabase.auth.signOut().then(() => {
+            if (typeof window !== "undefined") {
+              window.location.href = "/auth?disabled=1";
+            }
+          });
+        }
+      });
   }, [user]);
 
   return {
@@ -40,7 +56,8 @@ export function useAuth() {
     user,
     roles,
     loading,
-    isAdmin: roles.includes("admin"),
+    isAdmin: roles.includes("admin") || roles.includes("superadmin"),
+    isSuperAdmin: roles.includes("superadmin"),
     signOut: () => supabase.auth.signOut(),
   };
 }
