@@ -40,6 +40,16 @@ export function Header() {
               </Link>
             </Button>
           )}
+          {isSuperAdmin && (
+            <Button variant="ghost" size="sm" asChild>
+              <Link
+                to="/superadmin"
+                activeProps={{ className: "bg-accent text-accent-foreground" }}
+              >
+                <ShieldAlert className="size-4" /> Superadmin
+              </Link>
+            </Button>
+          )}
         </nav>
         <div className="flex items-center gap-2">
           {user ? (
