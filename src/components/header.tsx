@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { LogOut, LayoutDashboard, Shield, Home, LogIn, Gamepad2, ShieldAlert } from "lucide-react";
 
 export function Header() {
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, isAdmin, isSuperAdmin, signOut } = useAuth();
   return (
     <header className="sticky top-0 z-40 w-full glass">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
