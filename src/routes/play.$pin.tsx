@@ -215,9 +215,11 @@ function PlayPage() {
               {answered[currentQ.id]?.correct ? <Check className="size-10" /> : <X className="size-10" />}
             </div>
             <h2 className="text-3xl font-bold">{answered[currentQ.id]?.correct ? "Correct!" : "Not quite"}</h2>
-            <p className="text-muted-foreground">Correct answer: <span className="font-semibold text-foreground">{answered[currentQ.id]?.correctAnswer ?? "—"}</span></p>
+            {currentQ.type !== "matching" && (
+              <p className="text-muted-foreground">Correct answer: <span className="font-semibold text-foreground">{answered[currentQ.id]?.correctAnswer ?? "—"}</span></p>
+            )}
             {answered[currentQ.id] && <p className="text-warning font-semibold">+{answered[currentQ.id].points} pts</p>}
-            {answered[currentQ.id]?.explanation && <p className="text-sm text-muted-foreground max-w-lg mx-auto">{answered[currentQ.id].explanation}</p>}
+            {answered[currentQ.id]?.explanation && currentQ.type !== "matching" && <p className="text-sm text-muted-foreground max-w-lg mx-auto">{answered[currentQ.id].explanation}</p>}
             <Leaderboard participants={participants} highlight={participant.participantId} />
           </Card>
         )}
