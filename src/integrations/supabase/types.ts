@@ -49,18 +49,21 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          disabled: boolean
           email: string
           id: string
           name: string
         }
         Insert: {
           created_at?: string
+          disabled?: boolean
           email: string
           id: string
           name: string
         }
         Update: {
           created_at?: string
+          disabled?: boolean
           email?: string
           id?: string
           name?: string
@@ -294,9 +297,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_disabled: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "teacher"
+      app_role: "admin" | "teacher" | "superadmin"
       question_type:
         | "multiple_choice"
         | "true_false"
@@ -432,7 +436,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "teacher"],
+      app_role: ["admin", "teacher", "superadmin"],
       question_type: [
         "multiple_choice",
         "true_false",
