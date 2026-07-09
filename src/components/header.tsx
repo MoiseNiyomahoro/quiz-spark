@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { CSAbazaLogo } from "./csabaza-logo";
 import { Button } from "./ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { LogOut, LayoutDashboard, Shield, Home, LogIn, Gamepad2 } from "lucide-react";
+import { LogOut, LayoutDashboard, Shield, Home, LogIn, Gamepad2, ShieldAlert } from "lucide-react";
 
 export function Header() {
   const { user, isAdmin, signOut } = useAuth();
