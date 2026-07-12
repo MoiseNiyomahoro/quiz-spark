@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Header } from "@/components/header";
+import { GameBackground } from "@/components/game-background";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
@@ -110,7 +111,7 @@ function HostPage() {
 
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative z-0 min-h-screen bg-background">
       <Header />
       <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
         {session.status === "lobby" && (
@@ -149,6 +150,7 @@ function HostPage() {
 
         {(session.status === "question" || session.status === "reveal") && currentQ && (
           <>
+            <GameBackground />
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">Question {session.current_question_index + 1} / {questions.length}</div>
               <div className="flex items-center gap-3">

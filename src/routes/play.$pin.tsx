@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Header } from "@/components/header";
+import { GameBackground } from "@/components/game-background";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -149,7 +150,7 @@ function PlayPage() {
   }
 
   return (
-    <div className="min-h-screen bg-hero">
+    <div className="relative z-0 min-h-screen bg-hero">
       <Header />
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         <div className="flex items-center justify-between mb-4 text-sm">
@@ -160,7 +161,9 @@ function PlayPage() {
         {session.status === "lobby" && <Lobby participants={participants} />}
 
         {session.status === "question" && currentQ && (
-          <div className="space-y-4">
+          <>
+            <GameBackground />
+            <div className="space-y-4">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Question {session.current_question_index + 1} / {questions.length}</span>
               <span className="flex items-center gap-1 font-semibold"><Clock className="size-4" /> {Math.ceil(remaining)}s</span>
@@ -206,6 +209,7 @@ function PlayPage() {
               <p className="text-center text-sm text-muted-foreground">Answer locked in. Waiting for the host...</p>
             )}
           </div>
+          </>
         )}
 
         {session.status === "reveal" && currentQ && (
