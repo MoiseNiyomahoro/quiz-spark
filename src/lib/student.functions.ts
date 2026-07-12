@@ -99,22 +99,18 @@ export const submitAnswer = createServerFn({ method: "POST" })
         isCorrect = total > 0 && right === total;
         // Partial credit: proportional to correctly-matched pairs.
         // Speed bonus only awarded when all pairs are correct.
-        const startedAtMs = session.current_question_started_at
-          ? new Date(session.current_question_started_at).getTime()
-          : Date.now();
-        const elapsedMs = Date.now() - startedAtMs;
         if (total > 0) {
           const base = Math.round((question.points * right) / total);
-          const remaining = Math.max(0, question.timer_seconds - elapsedMs / 1000);
+          const remaining = Math.max(0, question.timer_seconds - elapsed / 1000);
           const speedBonus = isCorrect ? Math.round(remaining * 5) : 0;
           pts = base + speedBonus;
         }
       } else {
         isCorrect = question.correct_answer.trim().toLowerCase() === data.selectedAnswer.trim().toLowerCase();
-        pts = calcScore(isCorrect, question.timer_seconds, Date.now() - (session.current_question_started_at ? new Date(session.current_question_started_at).getTime() : Date.now()), question.points);
+        pts = calcScore(isCorrect, question.timer_seconds, elapsed, question.points);
       }
     }
-    const elapsed = Date.now() - (session.current_question_started_at ? new Date(session.current_question_started_at).getTime() : Date.now());
+
 
     const { error: rErr } = await supabaseAdmin.from("responses").upsert(
       {
