@@ -209,6 +209,7 @@ function PlayPage() {
               <p className="text-center text-sm text-muted-foreground">Answer locked in. Waiting for the host...</p>
             )}
           </div>
+          </>
         )}
 
         {session.status === "reveal" && currentQ && (
