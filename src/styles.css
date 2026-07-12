@@ -203,6 +203,7 @@
   .game-b { background: var(--gradient-game-b); }
   .game-c { background: var(--gradient-game-c); }
   .game-d { background: var(--gradient-game-d); }
+  .bg-game-bg { background: var(--gradient-game-bg); }
   .text-balance { text-wrap: balance; }
 }
 
