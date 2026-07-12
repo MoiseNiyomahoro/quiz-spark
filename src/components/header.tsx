@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { CSAbazaLogo } from "./csabaza-logo";
 import { Button } from "./ui/button";
+import { ThemeToggle } from "./theme-toggle";
 import { useAuth } from "@/hooks/use-auth";
 import { LogOut, LayoutDashboard, Shield, Home, LogIn, Gamepad2, ShieldAlert } from "lucide-react";
 
@@ -52,6 +53,7 @@ export function Header() {
           )}
         </nav>
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           {user ? (
             <Button variant="outline" size="sm" onClick={() => signOut()}>
               <LogOut className="size-4" /> Sign out
