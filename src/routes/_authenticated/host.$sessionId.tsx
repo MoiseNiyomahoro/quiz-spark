@@ -150,6 +150,7 @@ function HostPage() {
 
         {(session.status === "question" || session.status === "reveal") && currentQ && (
           <>
+            <GameBackground />
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">Question {session.current_question_index + 1} / {questions.length}</div>
               <div className="flex items-center gap-3">
