@@ -111,7 +111,7 @@ function HostPage() {
 
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative z-0 min-h-screen bg-background">
       <Header />
       <div className="container mx-auto px-4 py-8 max-w-6xl space-y-6">
         {session.status === "lobby" && (
