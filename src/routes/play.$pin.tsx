@@ -290,24 +290,31 @@ function Loading({ text }: { text: string }) {
 function FillBlankInput({ locked, onSubmit }: { locked: boolean; onSubmit: (v: string) => void }) {
   const [val, setVal] = useState("");
   return (
-    <div className="flex gap-2">
+    <form
+      className="flex gap-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!locked && val.trim()) onSubmit(val.trim());
+      }}
+    >
       <input
         type="text"
         disabled={locked}
         value={val}
         onChange={(e) => setVal(e.target.value)}
-        placeholder="Type your answer..."
+        placeholder="Type your answer and press Enter..."
+        autoFocus
         className="flex-1 rounded-2xl border-2 bg-background px-4 py-4 text-lg font-semibold outline-none focus:border-primary disabled:opacity-60"
       />
       <Button
+        type="submit"
         size="lg"
         disabled={locked || !val.trim()}
-        onClick={() => onSubmit(val.trim())}
         className="bg-gradient-primary rounded-2xl"
       >
         Submit
       </Button>
-    </div>
+    </form>
   );
 }
 
