@@ -79,7 +79,7 @@ function HostPage() {
   // Auto-advance: only when session.auto_advance is enabled
   const autoActionRef = useRef<string | null>(null);
   const revealAtRef = useRef<number | null>(null);
-  const REVEAL_MS = 4000;
+  const REVEAL_MS = 5000;
   useEffect(() => {
     if (!session || !currentQ) return;
     if (!session.auto_advance) return;
