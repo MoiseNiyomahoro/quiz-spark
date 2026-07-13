@@ -67,7 +67,7 @@ export const submitAnswer = createServerFn({ method: "POST" })
 
     const { data: question } = await supabaseAdmin
       .from("questions")
-      .select("id, type, correct_answer, explanation, timer_seconds, points")
+      .select("id, type, question_text, correct_answer, explanation, timer_seconds, points")
       .eq("id", data.questionId)
       .single();
     if (!question) throw new Error("Question not found");
