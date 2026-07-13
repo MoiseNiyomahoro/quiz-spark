@@ -85,6 +85,39 @@ export const submitAnswer = createServerFn({ method: "POST" })
         .filter(([l, r]) => l && r);
     }
 
+    async function aiEquivalent(qText: string, expected: string, given: string): Promise<boolean> {
+      const apiKey = process.env.LOVABLE_API_KEY;
+      if (!apiKey) return false;
+      try {
+        const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash",
+            messages: [
+              {
+                role: "system",
+                content:
+                  "You grade short fill-in-the-blank quiz answers. Reply with STRICT JSON only: {\"correct\": boolean, \"reason\": string}. Accept the student's answer as correct if it is the same concept as the expected answer — ignore case, punctuation, whitespace, word order, common abbreviations/expansions (e.g. FIFO ↔ First In First Out), and minor spelling/pluralization. Reject unrelated or factually wrong answers.",
+              },
+              {
+                role: "user",
+                content: `Question: ${qText}\nExpected answer: ${expected}\nStudent answer: ${given}`,
+              },
+            ],
+            response_format: { type: "json_object" },
+          }),
+        });
+        if (!res.ok) return false;
+        const body = await res.json();
+        const txt = body.choices?.[0]?.message?.content ?? "{}";
+        const parsed = JSON.parse(txt);
+        return parsed.correct === true;
+      } catch {
+        return false;
+      }
+    }
+
     let isCorrect = false;
     let pts = 0;
     if (question.correct_answer) {
