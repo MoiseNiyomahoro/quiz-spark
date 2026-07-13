@@ -106,7 +106,13 @@ export const submitAnswer = createServerFn({ method: "POST" })
           pts = base + speedBonus;
         }
       } else {
-        isCorrect = question.correct_answer.trim().toLowerCase() === data.selectedAnswer.trim().toLowerCase();
+        const norm = (s: string) => s.trim().toLowerCase().replace(/[\s\p{P}]+/gu, " ").trim();
+        isCorrect = norm(question.correct_answer) === norm(data.selectedAnswer);
+        // For fill-in-the-blank, use AI to accept semantically equivalent answers
+        // (e.g. "FIFO" ↔ "First in first out"), ignoring case/word-order/abbreviation.
+        if (!isCorrect && question.type === "fill_blank" && data.selectedAnswer.trim().length > 0) {
+          isCorrect = await aiEquivalent(question.question_text, question.correct_answer, data.selectedAnswer);
+        }
         pts = calcScore(isCorrect, question.timer_seconds, elapsed, question.points);
       }
     }
