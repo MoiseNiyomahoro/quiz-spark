@@ -97,7 +97,7 @@ function HostPage() {
     } else if (session.status === "question") {
       revealAtRef.current = null;
     }
-  }, [session?.status, session?.current_question_index, session?.auto_advance, remaining, currentQ?.id]);
+  }, [session?.status, session?.current_question_index, session?.auto_advance, remaining, currentQ?.id, now]);
 
   async function toggleAutoAdvance(next: boolean) {
     const { error } = await supabase.from("sessions").update({ auto_advance: next }).eq("id", sessionId);
