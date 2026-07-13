@@ -175,6 +175,27 @@ function HostPage() {
                 );
               })}
             </div>
+            {session.status === "reveal" && sortedLeaders.length > 0 && (
+              <Card className="p-5 border-2 border-primary/40 bg-gradient-card animate-fade-in">
+                <h3 className="font-bold mb-3 flex items-center gap-2 text-lg">
+                  🏆 Current Ranking
+                </h3>
+                <div className="space-y-2">
+                  {sortedLeaders.slice(0, 5).map((p, i) => (
+                    <div key={p.id} className="flex justify-between items-center bg-muted rounded-lg px-4 py-2">
+                      <span className="font-semibold">
+                        <span className={`mr-2 font-black ${i === 0 ? "text-warning" : i === 1 ? "text-muted-foreground" : i === 2 ? "text-amber-600" : ""}`}>#{i + 1}</span>
+                        {p.nickname}
+                      </span>
+                      <span className="font-bold text-primary">{p.score}</span>
+                    </div>
+                  ))}
+                </div>
+                {session.auto_advance && (
+                  <p className="mt-3 text-xs text-center text-muted-foreground">Advancing to next question in a few seconds…</p>
+                )}
+              </Card>
+            )}
             <div className="flex flex-wrap justify-center gap-2">
               {session.status === "question" && (
                 <Button onClick={() => act("reveal")} variant="outline">
